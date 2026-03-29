@@ -1,7 +1,6 @@
 package ml.mypals.carpetgui.screen.ruleGroup;
 
 import io.wispforest.owo.ui.base.BaseOwoScreen;
-import io.wispforest.owo.ui.component.ButtonComponent;
 import io.wispforest.owo.ui.component.Components;
 import io.wispforest.owo.ui.component.TextBoxComponent;
 import io.wispforest.owo.ui.container.Containers;
@@ -287,9 +286,7 @@ public class RuleGroupScreen extends BaseOwoScreen<FlowLayout> {
         } else {
             box = Components.textBox(Sizing.fill(92));
         }
-        box.focusGained().subscribe((focusSource) -> {
-            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1));
-        });
+        box.focusGained().subscribe((focusSource) -> Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1)));
         box.focusLost().subscribe(this::saveCurrent);
         box.setMaxLength(114514);
         box.text(text);
