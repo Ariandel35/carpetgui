@@ -2,6 +2,7 @@ package ml.mypals.carpetgui.mixin;
 
 import ml.mypals.carpetgui.settings.GamerulesDefaultValueSorter;
 import net.minecraft.world.level.GameRules;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,12 +19,12 @@ public class GamerulesMixin {
         if (DETECTOR == null) {
             DETECTOR = new GameRules.GameRuleTypeVisitor() {
                 @Override
-                public <T extends GameRules.Value<T>> void visit(GameRules.Key<T> key, GameRules.Type<T> type) {
+                public <U extends GameRules.Value<U>> void visit(GameRules.@NotNull Key<U> key, GameRules.@NotNull Type<U> type) {
                     GameRules.GameRuleTypeVisitor.super.visit(key, type);
                 }
 
                 @Override
-                public void visitBoolean(GameRules.Key<GameRules.BooleanValue> key, GameRules.Type<GameRules.BooleanValue> type) {
+                public void visitBoolean(GameRules.@NotNull Key<GameRules.BooleanValue> key, GameRules.@NotNull Type<GameRules.BooleanValue> type) {
                     GamerulesDefaultValueSorter.gamerulesDefaultValues.put(
                             key,
                             type.createRule().get() ? "true" : "false"
@@ -32,7 +33,7 @@ public class GamerulesMixin {
                 }
 
                 @Override
-                public void visitInteger(GameRules.Key<GameRules.IntegerValue> key, GameRules.Type<GameRules.IntegerValue> type) {
+                public void visitInteger(GameRules.@NotNull Key<GameRules.IntegerValue> key, GameRules.@NotNull Type<GameRules.IntegerValue> type) {
                     GamerulesDefaultValueSorter.gamerulesDefaultValues.put(
                             key,
                             type.createRule().serialize()

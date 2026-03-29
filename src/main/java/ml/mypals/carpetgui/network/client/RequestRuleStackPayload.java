@@ -4,6 +4,7 @@ import ml.mypals.carpetgui.network.PacketIDs;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import org.jetbrains.annotations.NotNull;
 
 public record RequestRuleStackPayload() implements CustomPacketPayload {
 
@@ -16,7 +17,7 @@ public record RequestRuleStackPayload() implements CustomPacketPayload {
     public void write(FriendlyByteBuf buf) { /* no payload */ }
 
     @Override
-    public Type<? extends CustomPacketPayload> type() {
+    public @NotNull Type<? extends CustomPacketPayload> type() {
         return ID;
     }
 }

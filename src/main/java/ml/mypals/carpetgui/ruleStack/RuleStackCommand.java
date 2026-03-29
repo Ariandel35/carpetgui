@@ -39,7 +39,7 @@ public final class RuleStackCommand {
                         .then(literal("status")
                                 .executes(RuleStackCommand::doStatus))
                         .then(literal("show")
-                                .executes(c -> doShowTop(c))
+                                .executes(RuleStackCommand::doShowTop)
                                 .then(argument("layerId", StringArgumentType.word())
                                         .executes(c -> doShowById(c, StringArgumentType.getString(c, "layerId")))))
                         .then(literal("diff")
@@ -82,9 +82,9 @@ public final class RuleStackCommand {
     private static boolean guard(CommandContext<CommandSourceStack> ctx) {
         if (mgr() == null) {
             ctx.getSource().sendFailure(Component.translatable("commands.rulestack.not_init"));
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     private static String ts(long ms) {
@@ -129,7 +129,7 @@ public final class RuleStackCommand {
     }
 
     private static int doPush(CommandContext<CommandSourceStack> ctx, String msg) {
-        if (!guard(ctx)) return 0;
+        if (guard(ctx)) return 0;
         RuleLayer layer = mgr().push(msg);
         if (layer == null) {
             ctx.getSource().sendFailure(Component.translatable("commands.rulestack.push.no_changes"));
@@ -145,7 +145,7 @@ public final class RuleStackCommand {
     }
 
     private static int doPop(CommandContext<CommandSourceStack> ctx) {
-        if (!guard(ctx)) return 0;
+        if (guard(ctx)) return 0;
         RuleLayer layer = mgr().pop();
         if (layer == null) {
             ctx.getSource().sendFailure(Component.translatable("commands.rulestack.pop.empty"));
@@ -165,7 +165,7 @@ public final class RuleStackCommand {
     }
 
     private static int doStatus(CommandContext<CommandSourceStack> ctx) {
-        if (!guard(ctx)) return 0;
+        if (guard(ctx)) return 0;
         PrefabManager m = mgr();
         Prefab active = m.getActivePrefab();
         List<RuleChange> pending = m.getPendingChanges();
@@ -206,7 +206,7 @@ public final class RuleStackCommand {
     }
 
     private static int doShowTop(CommandContext<CommandSourceStack> ctx) {
-        if (!guard(ctx)) return 0;
+        if (guard(ctx)) return 0;
         RuleLayer layer = mgr().getActivePrefab().peek();
         if (layer == null) {
             ctx.getSource().sendFailure(Component.translatable("commands.rulestack.show.empty"));
@@ -216,7 +216,7 @@ public final class RuleStackCommand {
     }
 
     private static int doShowById(CommandContext<CommandSourceStack> ctx, String idStr) {
-        if (!guard(ctx)) return 0;
+        if (guard(ctx)) return 0;
         int id;
         try {
             id = Integer.parseInt(idStr);
@@ -252,7 +252,7 @@ public final class RuleStackCommand {
     }
 
     private static int doDiff(CommandContext<CommandSourceStack> ctx) {
-        if (!guard(ctx)) return 0;
+        if (guard(ctx)) return 0;
         List<RuleChange> changes = mgr().getPendingChanges();
         if (changes.isEmpty()) {
             ctx.getSource().sendSuccess(() -> Component.translatable("commands.rulestack.diff.no_changes"), false);
@@ -270,7 +270,7 @@ public final class RuleStackCommand {
     }
 
     private static int doPrefabList(CommandContext<CommandSourceStack> ctx) {
-        if (!guard(ctx)) return 0;
+        if (guard(ctx)) return 0;
         PrefabManager m = mgr();
         MutableComponent msg = Component.translatable("commands.rulestack.prefab.list.header");
         for (Prefab p : m.getAllPrefabs()) {
@@ -287,7 +287,7 @@ public final class RuleStackCommand {
     }
 
     private static int doPrefabCreate(CommandContext<CommandSourceStack> ctx, String name, boolean fork) {
-        if (!guard(ctx)) return 0;
+        if (guard(ctx)) return 0;
         if (mgr().hasPrefab(name)) {
             ctx.getSource().sendFailure(Component.translatable("commands.rulestack.prefab.create.exists", name));
             return 0;
@@ -299,7 +299,7 @@ public final class RuleStackCommand {
     }
 
     private static int doPrefabDelete(CommandContext<CommandSourceStack> ctx, String name) {
-        if (!guard(ctx)) return 0;
+        if (guard(ctx)) return 0;
         if (!mgr().hasPrefab(name)) {
             ctx.getSource().sendFailure(Component.translatable("commands.rulestack.prefab.delete.not_found", name));
             return 0;
@@ -314,7 +314,7 @@ public final class RuleStackCommand {
     }
 
     private static int doPrefabSwitch(CommandContext<CommandSourceStack> ctx, String name) {
-        if (!guard(ctx)) return 0;
+        if (guard(ctx)) return 0;
         return switch (mgr().switchPrefab(name)) {
             case NOT_FOUND -> {
                 ctx.getSource().sendFailure(Component.translatable("commands.rulestack.prefab.switch.not_found", name));

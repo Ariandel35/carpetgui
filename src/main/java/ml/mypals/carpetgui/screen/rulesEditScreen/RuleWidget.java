@@ -30,7 +30,7 @@ public class RuleWidget {
     private final String orgName;
     private final boolean isTrueFalseRule;
     private String query = "";
-    private boolean isGamerule = false;
+    private boolean isGamerule;
     private boolean isLocked;
     private boolean isFavorited;
     private boolean currentBoolValue;

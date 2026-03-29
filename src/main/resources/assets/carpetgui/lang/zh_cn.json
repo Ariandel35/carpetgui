@@ -21,7 +21,6 @@
   "gui.rulegroups.empty": "暂无规则组",
   "gui.rulegroups.empty.hint": "在 %s 创建 .txt 文件 ",
   "gui.rulegroups.execute": "执行",
-  "gui.rulegroups.revert": "撤销",
   "gui.rulegroups.save": "保存",
   "gui.rulegroups.save_group": "创建规则组",
   "gui.rulegroups.cancel": "取消",

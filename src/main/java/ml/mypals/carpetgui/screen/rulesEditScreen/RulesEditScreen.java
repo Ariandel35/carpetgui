@@ -33,7 +33,7 @@ import static ml.mypals.carpetgui.CarpetGUI.MOD_ID;
 import static ml.mypals.carpetgui.CarpetGUIClient.*;
 
 public class RulesEditScreen extends BaseOwoScreen<FlowLayout> {
-    public boolean instantAffect = false;
+    public boolean instantAffect;
     private FlowLayout saveDialog;
     private OverlayContainer<FlowLayout> dialogOverlay;
     public double lastCategoryScroll = 0;
