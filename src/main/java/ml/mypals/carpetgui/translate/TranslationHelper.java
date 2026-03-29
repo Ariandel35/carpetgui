@@ -18,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static net.fabricmc.fabric.impl.resource.loader.ModResourcePackUtil.GSON;
 
@@ -142,9 +143,10 @@ public class TranslationHelper {
 
     private static void loadTranslationsFromPath(String namespace, String path, Map<String, String> translations) {
         try {
-            Path resourcePath = FabricLoader.getInstance()
+            Path resourcePath =
+                    Objects.requireNonNull(FabricLoader.getInstance()
                     .getModContainer(namespace)
-                    .orElse(null)
+                    .orElse(null))
                     .findPath(path)
                     .orElse(null);
 

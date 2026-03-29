@@ -105,9 +105,8 @@ public class RulesCacheManager {
             root.add("rules", serializeRules(mergedRules, oldLocalNames, oldLocalDescs, currentLanguage));
             root.add("categories", serializeTopLevelCategories(oldCategoryValues));
 
-            Path target = RULES_FILE;
             try (Writer w = new OutputStreamWriter(
-                    Files.newOutputStream(target, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING),
+                    Files.newOutputStream(RULES_FILE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING),
                     StandardCharsets.UTF_8)) {
                 GSON.toJson(root, w);
             }

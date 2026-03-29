@@ -5,10 +5,8 @@
   "mixins": [
     "CarpetClientNetworkMixin",
     "GamerulesMixin",
-    "accessors.BooleanValueAccessor",
     "accessors.CommandSourceStackMixin",
     "accessors.GameRulesAccessor",
-    "accessors.IntegerValueAccessor",
     "accessors.ScrollContentAccessor",
     "accessors.SettngsManagerAccessor",
     "accessors.TypeAccessor"
