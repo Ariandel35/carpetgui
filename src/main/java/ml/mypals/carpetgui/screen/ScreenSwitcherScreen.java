@@ -1,171 +1,178 @@
 package ml.mypals.carpetgui.screen;
 
-import com.google.common.collect.Lists;
 import com.mojang.blaze3d.platform.InputConstants;
+import io.wispforest.owo.ui.base.BaseComponent;
+import io.wispforest.owo.ui.base.BaseOwoScreen;
+import io.wispforest.owo.ui.component.Components;
+import io.wispforest.owo.ui.component.LabelComponent;
+import io.wispforest.owo.ui.container.Containers;
+import io.wispforest.owo.ui.container.FlowLayout;
+import io.wispforest.owo.ui.core.*;
+import ml.mypals.carpetgui.mixin.accessors.KeyMappingAccessor;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.GameNarrator;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Environment(EnvType.CLIENT)
-public class ScreenSwitcherScreen extends Screen {
+public class ScreenSwitcherScreen extends BaseOwoScreen<FlowLayout> {
 
-    static final ResourceLocation SLOT_SPRITE = ResourceLocation.withDefaultNamespace("gamemode_switcher/slot");
-    static final ResourceLocation SELECTION_SPRITE = ResourceLocation.withDefaultNamespace("gamemode_switcher/selection");
+    static final ResourceLocation SLOT_SPRITE =
+            ResourceLocation.withDefaultNamespace("gamemode_switcher/slot");
+    static final ResourceLocation SELECTION_SPRITE =
+            ResourceLocation.withDefaultNamespace("gamemode_switcher/selection");
 
-    private static final int SLOT_AREA = 26;
+    private static final int SLOT_AREA    = 26;
     private static final int SLOT_PADDING = 5;
-    private static final int SLOT_AREA_PADDED = 31;
+    private static final int ICON_OFFSET  = 5;
 
-    private static final int ICON_OFFSET = 5;
+    private long openTime;
+    private static final long HOLD_THRESHOLD = 300;
 
+    private static int triggerKey;
     private static final List<ScreenEntry> ENTRIES = new ArrayList<>();
-
-    private static KeyMapping triggerKey;
-
 
     public static void registerEntry(Component name, ItemStack icon, Runnable factory) {
         ENTRIES.add(new ScreenEntry(ENTRIES.size(), name, icon, factory));
     }
 
-    public static void setTriggerKey(KeyMapping key) {
+    public static void setTriggerKey(int key) {
         triggerKey = key;
     }
-
-    private final int allSlotsWidth;
-
     private ScreenEntry currentlyHovered;
+    private LabelComponent titleLabel;
+    private final List<ScreenSlotComponent> slotComponents = new ArrayList<>();
 
-    private int firstMouseX, firstMouseY;
-    private boolean setFirstMousePos = false;
-
-    private final List<ScreenSlot> slots = Lists.newArrayList();
-
-    public ScreenSwitcherScreen() {
-        super(net.minecraft.client.GameNarrator.NO_TITLE);
-        this.allSlotsWidth = ENTRIES.isEmpty() ? 0 : ENTRIES.size() * SLOT_AREA_PADDED - SLOT_PADDING;
-        this.currentlyHovered = ENTRIES.isEmpty() ? null : ENTRIES.get(0);
+    public ScreenSwitcherScreen(boolean firstEnter) {
+        super(GameNarrator.NO_TITLE);
+        this.openTime = System.currentTimeMillis();
+        if(!firstEnter){
+            ScreenSwitcherScreen.setTriggerKey(GLFW.GLFW_KEY_ESCAPE);
+        }
+        currentlyHovered = ENTRIES.isEmpty() ? null : ENTRIES.getFirst();
+    }
+    @Override
+    protected @NotNull OwoUIAdapter<FlowLayout> createAdapter() {
+        return OwoUIAdapter.create(this, Containers::verticalFlow);
     }
 
     @Override
-    protected void init() {
-        super.init();
-        this.slots.clear();
+    protected void build(FlowLayout root) {
+        root.horizontalAlignment(HorizontalAlignment.CENTER)
+                .verticalAlignment(VerticalAlignment.CENTER)
+                .sizing(Sizing.fill(100), Sizing.fill(100));
 
-        int startX = this.width / 2 - this.allSlotsWidth / 2;
-        int slotY = this.height / 2 - SLOT_AREA;
+        titleLabel = Components.label(
+                currentlyHovered != null ? currentlyHovered.name() : Component.empty());
+        titleLabel.color(Color.ofArgb(0xFFFFFFFF));
+        titleLabel.margins(Insets.bottom(14));
+        root.child(titleLabel);
 
+        FlowLayout slotsRow = Containers.horizontalFlow(Sizing.content(), Sizing.content());
+        slotsRow.gap(SLOT_PADDING);
+
+        slotComponents.clear();
         for (ScreenEntry entry : ENTRIES) {
-            int x = startX + entry.index() * SLOT_AREA_PADDED;
-            this.slots.add(new ScreenSlot(entry, x, slotY));
+            ScreenSlotComponent slot = new ScreenSlotComponent(entry);
+             slot.mouseEnter().subscribe(() -> {
+                 currentlyHovered = entry;
+                 updateSelection();
+            });
+            slot.mouseDown().subscribe((x,y,btn) -> {
+                openSelected();
+                return true;
+            });
+
+            slotComponents.add(slot);
+            slotsRow.child(slot);
         }
+
+        root.child(slotsRow);
+        updateSelection();
     }
+
 
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        if (this.checkToClose()) return;
-
+        if (checkToClose()) return;
         super.render(guiGraphics, mouseX, mouseY, delta);
-
-        if (this.currentlyHovered != null) {
-            guiGraphics.drawCenteredString(
-                    this.font,
-                    this.currentlyHovered.name(),
-                    this.width / 2,
-                    this.height / 2 - SLOT_AREA - 14,
-                    0xFFFFFF);
-        }
-
-        if (!this.setFirstMousePos) {
-            this.firstMouseX = mouseX;
-            this.firstMouseY = mouseY;
-            this.setFirstMousePos = true;
-        }
-        boolean mouseSteady = (this.firstMouseX == mouseX && this.firstMouseY == mouseY);
-
-        for (ScreenSlot slot : this.slots) {
-            slot.render(guiGraphics, mouseX, mouseY, delta);
-            slot.setSelected(this.currentlyHovered == slot.entry);
-            if (!mouseSteady && slot.isHoveredOrFocused()) {
-                this.currentlyHovered = slot.entry;
-            }
-        }
     }
 
     @Override
-    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-    }
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {}
 
     @Override
-    public boolean isPauseScreen() {
-        return false;
+    public boolean isPauseScreen() { return false; }
+
+    private void updateSelection() {
+        if (titleLabel != null && currentlyHovered != null)
+            titleLabel.text(currentlyHovered.name());
+        for (ScreenSlotComponent c : slotComponents)
+            c.setSelected(c.entry == currentlyHovered);
     }
 
     private boolean checkToClose() {
         if (minecraft == null) return false;
-        boolean keyStillHeld = triggerKey != null && InputConstants.isKeyDown(
-                this.minecraft.getWindow().getWindow(),
-                triggerKey.getDefaultKey().getValue());
-
+        boolean keyStillHeld = InputConstants.isKeyDown(minecraft.getWindow().getWindow(), triggerKey);
+        long heldTime = System.currentTimeMillis() - openTime;
         if (!keyStillHeld) {
-            this.minecraft.setScreen(null);
+            if (heldTime < HOLD_THRESHOLD && triggerKey == GLFW.GLFW_KEY_ESCAPE) {
+                minecraft.setScreen(null);
+                return true;
+            }
+            minecraft.setScreen(null);
             openSelected();
             return true;
         }
         return false;
     }
 
-    private void openSelected() {
-        if (this.currentlyHovered == null) return;
-        this.currentlyHovered.factory().run();
+    public void onClose(){
+        if(minecraft == null || !InputConstants.isKeyDown(minecraft.getWindow().getWindow(), GLFW.GLFW_KEY_ESCAPE)){
+            super.onClose();
+        }
     }
 
-    public record ScreenEntry(
-            int index,
-            Component name,
-            ItemStack icon,
-            Runnable factory
-    ) {
+    private void openSelected() {
+        if (currentlyHovered != null) currentlyHovered.factory().run();
     }
+
+    public record ScreenEntry(int index, Component name, ItemStack icon, Runnable factory) {}
+
 
     @Environment(EnvType.CLIENT)
-    public static class ScreenSlot extends AbstractWidget {
+    public static class ScreenSlotComponent extends BaseComponent {
 
         final ScreenEntry entry;
         private boolean isSelected;
 
-        public ScreenSlot(ScreenEntry entry, int x, int y) {
-            super(x, y, SLOT_AREA, SLOT_AREA, entry.name());
+        public ScreenSlotComponent(ScreenEntry entry) {
             this.entry = entry;
+            sizing(Sizing.fixed(SLOT_AREA), Sizing.fixed(SLOT_AREA));
+            cursorStyle(CursorStyle.HAND);
         }
 
         @Override
-        public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-            guiGraphics.blitSprite(SLOT_SPRITE, this.getX(), this.getY(), SLOT_AREA, SLOT_AREA);
-            guiGraphics.renderItem(this.entry.icon(), this.getX() + ICON_OFFSET, this.getY() + ICON_OFFSET);
-            if (this.isSelected) {
-                guiGraphics.blitSprite(SELECTION_SPRITE, this.getX(), this.getY(), SLOT_AREA, SLOT_AREA);
+        public void draw(OwoUIDrawContext context, int mouseX, int mouseY,
+                         float partialTicks, float delta) {
+            context.blitSprite(SLOT_SPRITE, x, y, SLOT_AREA, SLOT_AREA);
+            context.renderItem(entry.icon(), x + ICON_OFFSET, y + ICON_OFFSET);
+            if (isSelected) {
+                context.blitSprite(SELECTION_SPRITE, x, y, SLOT_AREA, SLOT_AREA);
             }
         }
-
         @Override
-        public void updateWidgetNarration(NarrationElementOutput output) {
-            this.defaultButtonNarrationText(output);
-        }
-
-        @Override
-        public boolean isHoveredOrFocused() {
-            return super.isHoveredOrFocused() || this.isSelected;
+        public boolean isInBoundingBox(double x, double y) {
+            return x >= (double)this.x() && x < (double)(this.x() + this.width());
         }
 
         public void setSelected(boolean selected) {

@@ -4,5 +4,10 @@ import ml.mypals.carpetgui.network.server.RuleStackSyncPayload;
 
 import java.util.List;
 
-public record RuleStackData (String activePrefabName, List<String> allPrefabNames, List<RuleStackSyncPayload.LayerInfo> layers, List<RuleStackSyncPayload.ChangeInfo> pendingChanges){
-}
+public record RuleStackData(
+        String activePrefabName,
+        List<String> allPrefabNames,
+        List<RuleStackSyncPayload.LayerInfo> layers,
+        List<RuleStackSyncPayload.ChangeInfo> pendingChanges,
+        List<RuleStackSyncPayload.LayerInfo> futureLayers
+) {}

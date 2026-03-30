@@ -11,6 +11,7 @@ import io.wispforest.owo.ui.container.ScrollContainer;
 import io.wispforest.owo.ui.core.*;
 import ml.mypals.carpetgui.mixin.accessors.ScrollContentAccessor;
 import ml.mypals.carpetgui.network.RuleData;
+import ml.mypals.carpetgui.screen.ScreenSwitcherScreen;
 import ml.mypals.carpetgui.screen.ScreenUtils;
 import ml.mypals.carpetgui.screen.ruleGroup.RuleCommand;
 import ml.mypals.carpetgui.screen.ruleGroup.RuleGroup;
@@ -337,7 +338,7 @@ public class RulesEditScreen extends BaseOwoScreen<FlowLayout> {
         if (!this.instantAffect) {
             ScreenUtils.showSaveGroupDialog(this.uiAdapter.rootComponent, dialogOverlay);
         } else {
-            super.onClose();
+            Minecraft.getInstance().setScreen(new ScreenSwitcherScreen(false));
         }
     }
 }

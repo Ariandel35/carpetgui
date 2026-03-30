@@ -11,7 +11,8 @@ public record RuleStackSyncPayload(
         String activePrefabName,
         List<String> allPrefabNames,
         List<RuleStackSyncPayload.LayerInfo> layers,
-        List<RuleStackSyncPayload.ChangeInfo> pendingChanges
+        List<RuleStackSyncPayload.ChangeInfo> pendingChanges,
+        List<RuleStackSyncPayload.LayerInfo> futureLayers
 ) implements CustomPacketPayload {
 
     public static final Type<RuleStackSyncPayload> ID =
@@ -25,7 +26,8 @@ public record RuleStackSyncPayload(
                 buf.readUtf(),
                 buf.readList(FriendlyByteBuf::readUtf),
                 buf.readList(LayerInfo::read),
-                buf.readList(ChangeInfo::read)
+                buf.readList(ChangeInfo::read),
+                buf.readList(LayerInfo::read)
         );
     }
 
@@ -34,6 +36,7 @@ public record RuleStackSyncPayload(
         buf.writeCollection(allPrefabNames, FriendlyByteBuf::writeUtf);
         buf.writeCollection(layers, (b, l) -> l.write(b));
         buf.writeCollection(pendingChanges, (b, c) -> c.write(b));
+        buf.writeCollection(futureLayers, (b, l) -> l.write(b));
     }
 
     @Override

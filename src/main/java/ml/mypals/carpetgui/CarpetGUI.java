@@ -17,6 +17,7 @@ import ml.mypals.carpetgui.network.server.RuleStackSyncPayload;
 import ml.mypals.carpetgui.network.server.RulesPacketPayload;
 import ml.mypals.carpetgui.ruleStack.Prefab;
 import ml.mypals.carpetgui.ruleStack.PrefabManager;
+import ml.mypals.carpetgui.ruleStack.RuleLayer;
 import ml.mypals.carpetgui.ruleStack.RuleStackCommand;
 import ml.mypals.carpetgui.translate.TranslationHelper;
 import net.fabricmc.api.ModInitializer;
@@ -101,6 +102,17 @@ public class CarpetGUI implements ModInitializer, CarpetExtension {
                                             .toList()))
                             .toList();
 
+                    List<RuleStackSyncPayload.LayerInfo> futureLayerInfos = active.getFutureLayers().stream()
+                            .map(layer -> new RuleStackSyncPayload.LayerInfo(
+                                    layer.getId(), layer.getMessage(), layer.getTimestamp(),
+                                    layer.getChanges().stream()
+                                            .map(c -> new RuleStackSyncPayload.ChangeInfo(
+                                                    c.ruleKey(),
+                                                    c.previousSnapshot().value(), c.previousSnapshot().isDefault(),
+                                                    c.newSnapshot().value(), c.newSnapshot().isDefault()))
+                                            .toList()))
+                            .toList();
+
                     List<RuleStackSyncPayload.ChangeInfo> pending = mgr.getPendingChanges().stream()
                             .map(c -> new RuleStackSyncPayload.ChangeInfo(
                                     c.ruleKey(),
@@ -111,7 +123,8 @@ public class CarpetGUI implements ModInitializer, CarpetExtension {
                     ServerPlayNetworking.send(player, new RuleStackSyncPayload(
                             mgr.getActiveName(),
                             mgr.getAllPrefabs().stream().map(Prefab::getName).toList(),
-                            layerInfos, pending));
+                            layerInfos, pending, futureLayerInfos
+                    ));
                 })
         );
     }

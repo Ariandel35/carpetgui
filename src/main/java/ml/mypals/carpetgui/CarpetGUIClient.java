@@ -2,6 +2,7 @@ package ml.mypals.carpetgui;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import ml.mypals.carpetgui.localChache.RulesCacheManager;
+import ml.mypals.carpetgui.mixin.accessors.KeyMappingAccessor;
 import ml.mypals.carpetgui.network.RuleData;
 import ml.mypals.carpetgui.network.client.RequestRuleStackPayload;
 import ml.mypals.carpetgui.network.client.RequestRulesPayload;
@@ -54,17 +55,18 @@ public class CarpetGUIClient implements ClientModInitializer {
     public void onInitializeClient() {
         CarpetGUIConfigManager.initializeConfig();
 
-        ScreenSwitcherScreen.registerEntry(
-                Component.translatable("gui.screen.rules"),
-                new ItemStack(Items.KNOWLEDGE_BOOK),
-                () -> openRuleEditScreen(true)
-        );
+
         ScreenSwitcherScreen.registerEntry(
                 Component.translatable("gui.screen.rule_groups"),
                 new ItemStack(Items.DRIED_KELP_BLOCK),
                 () -> {
                     Minecraft.getInstance().setScreen(new RuleGroupScreen());
                 }
+        );
+        ScreenSwitcherScreen.registerEntry(
+                Component.translatable("gui.screen.rules"),
+                new ItemStack(Items.KNOWLEDGE_BOOK),
+                () -> openRuleEditScreen(true)
         );
         ScreenSwitcherScreen.registerEntry(
                 Component.translatable("gui.screen.rule_stack"),
@@ -85,12 +87,10 @@ public class CarpetGUIClient implements ClientModInitializer {
                 GLFW.GLFW_KEY_F9,
                 "key.category.carpetgui.name"
         ));
-        ScreenSwitcherScreen.setTriggerKey(carpetRulesKeyBind);
-
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (carpetRulesKeyBind.consumeClick()) {
-                ScreenSwitcherScreen screen = new ScreenSwitcherScreen();
-                Minecraft.getInstance().setScreen(screen);
+                ScreenSwitcherScreen.setTriggerKey(((KeyMappingAccessor)carpetRulesKeyBind).carpetGUI$getCurrentKey().getValue());
+                Minecraft.getInstance().setScreen(new ScreenSwitcherScreen(true));
             }
         });
 
@@ -105,7 +105,7 @@ public class CarpetGUIClient implements ClientModInitializer {
         );
         ClientPlayNetworking.registerGlobalReceiver(RuleStackSyncPayload.ID,
                 (payload, context) ->  context.client().execute(() -> {
-            cachedRuleStackData = new RuleStackData(payload.activePrefabName(), payload.allPrefabNames(), payload.layers(), payload.pendingChanges());
+            cachedRuleStackData = new RuleStackData(payload.activePrefabName(), payload.allPrefabNames(), payload.layers(), payload.pendingChanges(), payload.futureLayers());
             if(RuleStackScreen.INSTANCE != null){
                 RuleStackScreen.INSTANCE.onSync();
             }

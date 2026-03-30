@@ -21,7 +21,7 @@
   "gui.rulestack.no_changes": "(no changes)",
   "gui.rulestack.loading": "Loading…",
   "gui.rulestack.message_hint": "Commit message",
-  "gui.rulestack.btn.push": "Commit",
+  "gui.rulestack.btn.push": "Push",
   "gui.rulestack.btn.pop": "Revert",
   "gui.rulestack.switch_warning": "You have uncommitted changes that will be overwritten.\nHold Shift and click to confirm.",
   "gui.rulestack.btn.switch": "Switch",
@@ -39,6 +39,10 @@
   "gui.rulegroups.new": "New",
   "gui.rulegroups.addcommand": "New Command",
   "gui.rulegroups.file": "Open Folder",
+  "gui.rulestack.push_hint.redo": "Push will redo: %1$s",
+  "gui.rulestack.push_hint.discard_future": "!Push will discard %1$s redo frame(s)",
+  "gui.rulestack.future_marker": "§b⟲",
+
   "commands.rulestack.not_init": "§cRuleStack is not initialized",
   "commands.rulestack.push.no_changes": "§cNo uncommitted changes to push",
   "commands.rulestack.push.success": "§aPushed §eLayer #%s%s §a(%s changes)",
@@ -70,5 +74,9 @@
   "commands.rulestack.prefab.switch.not_found": "§cPrefab §e'%s' §cnot found",
   "commands.rulestack.prefab.switch.already_active": "§cPrefab §e'%s' §cis already active",
   "commands.rulestack.prefab.switch.success_dirty": "§e! Switched to §6'%s'§e (previous Prefab had uncommitted changes, discarded)",
-  "commands.rulestack.prefab.switch.success": "§a> Switched to Prefab §e'%s'§a"
+  "commands.rulestack.prefab.switch.success": "§a> Switched to Prefab §e'%s'§a",
+  "commands.rulestack.push.redo": "Redone layer #%1$s%2$s (%3$s changes)",
+  "commands.rulestack.pop.redo_hint": "(Layer cached, push to redo)",
+  "commands.rulestack.status.future_header": "\nRedoable layers (%1$s):",
+  "commands.rulestack.status.future_entry": "\n  %1$s#%2$s%3$s — %4$s changes  %5$s"
 }

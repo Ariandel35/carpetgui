@@ -7,6 +7,7 @@ import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.core.*;
 import ml.mypals.carpetgui.localChache.RulesCacheManager;
+import ml.mypals.carpetgui.screen.ScreenSwitcherScreen;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
@@ -318,4 +319,9 @@ public class RuleGroupScreen extends BaseOwoScreen<FlowLayout> {
             leftContent.child(buildRow(cmd, currentBoxes));
         }
     }
+    @Override
+    public void onClose() {
+        Minecraft.getInstance().setScreen(new ScreenSwitcherScreen(false));
+    }
+
 }

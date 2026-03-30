@@ -11,6 +11,8 @@ import io.wispforest.owo.ui.core.*;
 import ml.mypals.carpetgui.CarpetGUIClient;
 import ml.mypals.carpetgui.network.client.RequestRuleStackPayload;
 import ml.mypals.carpetgui.network.server.RuleStackSyncPayload;
+import ml.mypals.carpetgui.screen.ScreenSwitcherScreen;
+import ml.mypals.carpetgui.screen.ScreenUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -27,33 +29,33 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static ml.mypals.carpetgui.screen.ScreenUtils.*;
+import static ml.mypals.carpetgui.screen.ScreenUtils.btn;
 
 public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
 
-    public static RuleStackScreen INSTANCE = null;
-
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("MM-dd HH:mm");
-
+    public static RuleStackScreen INSTANCE = null;
     private Integer selectedLayerId = null;
 
     private int pendingRefreshTicks = 0;
-
-    private enum PrefabPanel {NONE, LIST, NEW_INPUT}
-
     private PrefabPanel prefabPanel = PrefabPanel.NONE;
-
     private LabelComponent prefabNameLabel;
     private FlowLayout prefabDynamic;
     private FlowLayout timelineLayout;
     private FlowLayout changesLayout;
+    private FlowLayout bottomButtonLayout;
     private LabelComponent changesHeaderLabel;
     private TextBoxComponent pushMessageBox;
+
+    private static String ts(long ms) {
+        return FMT.format(
+                LocalDateTime.ofInstant(Instant.ofEpochMilli(ms), ZoneId.systemDefault()));
+    }
 
     @Override
     public void onClose() {
         INSTANCE = null;
-        super.onClose();
+        Minecraft.getInstance().setScreen(new ScreenSwitcherScreen(false));
     }
 
     @Override
@@ -71,10 +73,8 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
     protected void build(FlowLayout root) {
         INSTANCE = this;
         root.surface(Surface.blur(10, 10));
-
         root.child(buildLeftPanel());
         root.child(buildRightPanel());
-
         requestSync();
     }
 
@@ -82,37 +82,39 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
         var panel = Containers.verticalFlow(Sizing.fill(66), Sizing.content());
         panel.allowOverflow();
         changesLayout = Containers.verticalFlow(Sizing.fill(99), Sizing.content());
-        ScrollContainer<FlowLayout> scroll = Containers.verticalScroll(Sizing.fill(100), Sizing.fill(), changesLayout);
+        ScrollContainer<FlowLayout> scroll =
+                Containers.verticalScroll(Sizing.fill(100), Sizing.fill(), changesLayout);
         scroll.surface(Surface.flat(0x66000000));
         scroll.scrollbar(ScrollContainer.Scrollbar.flat(Color.WHITE));
         panel.child(scroll);
-
         return panel;
     }
+
     private FlowLayout buildRightPanel() {
         FlowLayout panel = Containers.verticalFlow(Sizing.fill(34), Sizing.fill(100));
         panel.surface(Surface.flat(0x66000000));
         panel.padding(Insets.of(2));
 
-        FlowLayout prefabSection = Containers.verticalFlow(Sizing.fill(100), Sizing.content());
+        FlowLayout prefabSection =
+                Containers.verticalFlow(Sizing.fill(100), Sizing.content());
         prefabSection.margins(Insets.bottom(5));
         panel.child(prefabSection);
 
-        prefabNameLabel = Components.label(Component.translatable("gui.rulestack.prefab", "…")
-                .withStyle(ChatFormatting.YELLOW));
+        prefabNameLabel = Components.label(
+                Component.translatable("gui.rulestack.prefab", "…")
+                        .withStyle(ChatFormatting.YELLOW));
         prefabNameLabel.color(Color.WHITE);
         prefabNameLabel.margins(Insets.bottom(3));
         prefabSection.child(prefabNameLabel);
 
-        FlowLayout prefabBtns = Containers.horizontalFlow(Sizing.fill(100), Sizing.fill(5));
+        FlowLayout prefabBtns =
+                Containers.horizontalFlow(Sizing.fill(100), Sizing.fill(5));
         prefabBtns.gap(3);
         prefabBtns.child(btn(Component.translatable("gui.rulestack.btn.switch"),
-                Sizing.fill(20) ,
-                Sizing.fill(100) ,
+                Sizing.fill(20), Sizing.fill(100),
                 () -> togglePrefabPanel(PrefabPanel.LIST)));
         prefabBtns.child(btn(Component.translatable("gui.rulestack.btn.new_prefab"),
-                Sizing.fill(20) ,
-                Sizing.fill(100) ,
+                Sizing.fill(20), Sizing.fill(100),
                 () -> togglePrefabPanel(PrefabPanel.NEW_INPUT)));
         prefabSection.child(prefabBtns);
 
@@ -121,7 +123,8 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
         prefabSection.child(prefabDynamic);
 
         timelineLayout = Containers.verticalFlow(Sizing.fill(100), Sizing.content());
-        ScrollContainer<FlowLayout> timelineScroll = Containers.verticalScroll(Sizing.fill(), Sizing.fill(70), timelineLayout);
+        ScrollContainer<FlowLayout> timelineScroll =
+                Containers.verticalScroll(Sizing.fill(), Sizing.fill(70), timelineLayout);
         timelineScroll.surface(Surface.flat(0x15000000));
         timelineScroll.scrollbar(ScrollContainer.Scrollbar.flat(Color.WHITE));
         panel.child(timelineScroll);
@@ -132,34 +135,43 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
         pushMessageBox.setSuggestion(hint);
         pushMessageBox.focusGained().subscribe(s -> pushMessageBox.setSuggestion(""));
         pushMessageBox.focusLost().subscribe(() -> {
-            if (pushMessageBox.getValue().isEmpty()) pushMessageBox.setSuggestion(hint);
+            if (pushMessageBox.getValue().isEmpty())
+                pushMessageBox.setSuggestion(hint);
         });
         pushMessageBox.margins(Insets.top(4));
         panel.child(pushMessageBox);
 
-        FlowLayout btnRow = Containers.horizontalFlow(Sizing.fill(100), Sizing.fixed(16));
-        btnRow.gap(4);
-        btnRow.margins(Insets.top(2));
-        btnRow.horizontalAlignment(HorizontalAlignment.LEFT);
-        btnRow.child(btn(
-            Component.translatable("gui.rulestack.btn.push"),
-                Sizing.fill(50) ,
-                Sizing.fill(100) ,
-            () -> {
-            String msg = pushMessageBox.getValue().trim();
-            sendCmd("rulestack push" + (msg.isEmpty() ? "" : " " + msg));
-            pushMessageBox.setValue("");
-            pushMessageBox.setSuggestion(hint);
-        }));
-        btnRow.child(btn(
-                Component.translatable("gui.rulestack.btn.pop"),
-                Sizing.fill(50) ,
-                Sizing.fill(100) ,
-                () -> sendCmd("rulestack pop")));
+        bottomButtonLayout = Containers.horizontalFlow(Sizing.fill(100), Sizing.fixed(16));
+        bottomButtonLayout.gap(4);
+        bottomButtonLayout.margins(Insets.top(2));
+        bottomButtonLayout.horizontalAlignment(HorizontalAlignment.LEFT);
 
-        panel.child(btnRow);
+        buildBottomButtons();
 
+        panel.child(bottomButtonLayout);
         return panel;
+    }
+    private void buildBottomButtons() {
+        bottomButtonLayout.clearChildren();
+        Component pushTooltip = rebuildPushHint();
+        FlowLayout pushButton = btn(
+                Component.translatable("gui.rulestack.btn.push"),
+                Sizing.fill(50), Sizing.fill(100),
+                () -> {
+                    String msg = pushMessageBox.getValue().trim();
+                    sendCmd("rulestack push" + (msg.isEmpty() ? "" : " " + msg));
+                    pushMessageBox.setValue("");
+                    pushMessageBox.setSuggestion(Component.translatable("gui.rulestack.message_hint").getString());
+                });
+        if (pushTooltip != null) {
+            pushButton.tooltip(pushTooltip);
+        }
+        bottomButtonLayout.child(pushButton);
+
+        bottomButtonLayout.child(btn(
+                Component.translatable("gui.rulestack.btn.pop"),
+                Sizing.fill(50), Sizing.fill(100),
+                () -> sendCmd("rulestack pop")));
     }
 
     private void togglePrefabPanel(PrefabPanel target) {
@@ -188,22 +200,24 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
             row.verticalAlignment(VerticalAlignment.CENTER);
             row.surface(Surface.flat(active ? 0x40AAFFAA : 0x10FFFFFF));
 
-            LabelComponent lbl = Components.label(Component.literal((active ? "> " : "  ") + name));
+            LabelComponent lbl = Components.label(
+                    Component.literal((active ? "> " : "  ") + name));
             lbl.color(Color.WHITE);
-            if(!data.pendingChanges().isEmpty()) row.tooltip(Component.translatable("gui.rulestack.switch_warning"));
+            if (!data.pendingChanges().isEmpty())
+                row.tooltip(Component.translatable("gui.rulestack.switch_warning"));
             row.child(lbl);
-            row.mouseEnter().subscribe(() ->{
-                if(data.pendingChanges().isEmpty() || Screen.hasShiftDown()) {
+
+            row.mouseEnter().subscribe(() -> {
+                if (data.pendingChanges().isEmpty() || Screen.hasShiftDown())
                     row.surface(row.surface().and(Surface.outline(Color.WHITE.argb())));
-                }
             });
-            row.mouseLeave().subscribe(() ->{
-                row.surface(Surface.flat(active ? 0x40AAFFAA : 0x10FFFFFF));
-            });
+            row.mouseLeave().subscribe(() ->
+                    row.surface(Surface.flat(active ? 0x40AAFFAA : 0x10FFFFFF)));
+
             if (!active) {
                 row.cursorStyle(CursorStyle.HAND);
                 row.mouseDown().subscribe((x, y, b) -> {
-                    if(data.pendingChanges().isEmpty() || Screen.hasShiftDown()){
+                    if (data.pendingChanges().isEmpty() || Screen.hasShiftDown()) {
                         sendCmd("rulestack prefab switch " + name);
                         return true;
                     }
@@ -218,25 +232,21 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
     private void fillNewPrefabInput() {
         FlowLayout row = Containers.horizontalFlow(Sizing.fill(100), Sizing.fixed(21));
         row.gap(3);
-
         TextBoxComponent nameBox = Components.textBox(Sizing.fill(80));
         nameBox.setMaxLength(256);
         nameBox.setSuggestion("…");
         nameBox.focusGained().subscribe(s -> nameBox.setSuggestion(""));
-
         row.child(nameBox);
-        FlowLayout button = btn(Component.translatable("gui.rulegroups.save"),
-                Sizing.fill(20) ,
-                Sizing.fill(100) ,
+        row.child(btn(Component.translatable("gui.rulegroups.save"),
+                Sizing.fill(20), Sizing.fill(100),
                 () -> {
-            String n = nameBox.getValue().trim();
-            if (!n.isEmpty()) {
-                sendCmd("rulestack prefab create " + n + " false");
-                prefabDynamic.clearChildren();
-                prefabPanel = PrefabPanel.NONE;
-            }
-        });
-        row.child(button);
+                    String n = nameBox.getValue().trim();
+                    if (!n.isEmpty()) {
+                        sendCmd("rulestack prefab create " + n + " false");
+                        prefabDynamic.clearChildren();
+                        prefabPanel = PrefabPanel.NONE;
+                    }
+                }));
         prefabDynamic.child(row);
     }
 
@@ -247,16 +257,21 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
         RuleStackData data = CarpetGUIClient.cachedRuleStackData;
         if (data == null) {
             timelineLayout.child(Components.label(
-                    Component.translatable("gui.rulestack.loading").withStyle(ChatFormatting.GRAY)));
+                    Component.translatable("gui.rulestack.loading")
+                            .withStyle(ChatFormatting.GRAY)));
             return;
         }
 
         List<RuleStackSyncPayload.LayerInfo> layers = data.layers();
+        List<RuleStackSyncPayload.LayerInfo> futureLayers = data.futureLayers();
         boolean hasPending = !data.pendingChanges().isEmpty();
-        int total = (hasPending ? 1 : 0) + layers.size() + 1;
+        boolean hasFuture = !futureLayers.isEmpty();
+
+        int total = (hasPending ? 1 : 0) + futureLayers.size() + layers.size() + 1;
         int pos = 0;
 
         if (hasPending) {
+            if(selectedLayerId == null) selectedLayerId = -1;
             boolean sel = Integer.valueOf(-1).equals(selectedLayerId);
             timelineLayout.child(timelineNode(
                     Component.translatable("gui.rulestack.pending_changes",
@@ -264,60 +279,153 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
                             .withStyle(ChatFormatting.YELLOW),
                     null, data.pendingChanges().size(),
                     sel, false, pos < total - 1,
+                    NodeStyle.PENDING,
                     this::selectPending));
+            pos++;
+        }
+
+        for (int i = 0; i < futureLayers.size(); i++) {
+            RuleStackSyncPayload.LayerInfo layer = futureLayers.get(i);
+            boolean isNextRedo = (i == futureLayers.size() - 1);
+
+            MutableComponent label =
+                    Component.literal("↩ #" + layer.id() + " ")
+                            .withStyle(isNextRedo ? ChatFormatting.AQUA
+                                    : ChatFormatting.DARK_AQUA);
+            if (!layer.message().isEmpty())
+                label.append(Component.literal("\"" + layer.message() + "\"")
+                        .withStyle(ChatFormatting.UNDERLINE));
+
+            boolean sel = Integer.valueOf(layer.id()).equals(selectedLayerId);
+            final RuleStackSyncPayload.LayerInfo lRef = layer;
+            timelineLayout.child(timelineNode(
+                    label, layer.timestamp(), layer.changes().size(),
+                    sel, pos > 0, pos < total - 1,
+                    isNextRedo ? NodeStyle.FUTURE_NEXT : NodeStyle.FUTURE,
+                    () -> selectLayer(lRef, true)));
             pos++;
         }
 
         for (int i = layers.size() - 1; i >= 0; i--) {
             RuleStackSyncPayload.LayerInfo layer = layers.get(i);
+            if(selectedLayerId == null && i == layers.size()-1 && ! hasPending){
+                selectedLayerId = layer.id();
+            }
+
             boolean sel = Integer.valueOf(layer.id()).equals(selectedLayerId);
 
-            MutableComponent label = Component.literal("#" + layer.id() + " ").withStyle(ChatFormatting.YELLOW);
+            MutableComponent label =
+                    Component.literal("#" + layer.id() + " ").withStyle(ChatFormatting.YELLOW);
             if (!layer.message().isEmpty())
-                label.append(Component.literal("\"" + layer.message() + "\"").withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.WHITE));
+                label.append(Component.literal("\"" + layer.message() + "\"")
+                        .withStyle(ChatFormatting.UNDERLINE)
+                        .withStyle(ChatFormatting.WHITE));
 
             final RuleStackSyncPayload.LayerInfo lRef = layer;
             timelineLayout.child(timelineNode(
                     label, layer.timestamp(), layer.changes().size(),
                     sel, pos > 0, pos < total - 1,
-                    () -> selectLayer(lRef)));
+                    i == layers.size() - 1 ? NodeStyle.HEAD : NodeStyle.NORMAL,
+                    () -> selectLayer(lRef, false)));
             pos++;
         }
 
         timelineLayout.child(timelineNode(
                 Component.translatable("gui.rulestack.base").withStyle(ChatFormatting.GRAY),
                 null, 0,
-                false, pos > 0,false,
+                false, pos > 0, false,
+                NodeStyle.BASE,
                 null));
+        buildBottomButtons();
+    }
+
+    private Component rebuildPushHint() {
+        RuleStackData data = CarpetGUIClient.cachedRuleStackData;
+        if (data == null) {
+            return null;
+        }
+
+        boolean hasPending = !data.pendingChanges().isEmpty();
+        boolean hasFuture = !data.futureLayers().isEmpty();
+
+        if (hasFuture && !hasPending) {
+            RuleStackSyncPayload.LayerInfo next =
+                    data.futureLayers().getLast();
+            String redoLabel = "#" + next.id()
+                    + (next.message().isEmpty() ? "" : " \"" + next.message() + "\"");
+            return Component.translatable("gui.rulestack.push_hint.redo", redoLabel)
+                    .withStyle(ChatFormatting.AQUA);
+        } else if (hasFuture) {
+
+            return Component.translatable("gui.rulestack.push_hint.discard_future",
+                            String.valueOf(data.futureLayers().size()))
+                    .withStyle(ChatFormatting.GOLD);
+        } else {
+            return null;
+        }
     }
 
     private FlowLayout timelineNode(
-            Component label, Long timestamp, int changeCount,
-            boolean selected, boolean topLine, boolean bottomLine,
+            Component label,
+            Long timestamp,
+            int changeCount,
+            boolean selected,
+            boolean topLine,
+            boolean bottomLine,
+            NodeStyle style,
             Runnable onClick
     ) {
         FlowLayout entry = Containers.horizontalFlow(Sizing.fill(100), Sizing.fixed(36));
         entry.verticalAlignment(VerticalAlignment.CENTER);
         entry.padding(Insets.right(4));
-        if (selected) entry.surface(Surface.flat(0x25AAFFAA).and(Surface.outline(0x60AAFFAA)));
+
+        boolean isFuture = (style == NodeStyle.FUTURE || style == NodeStyle.FUTURE_NEXT);
+
+        if (selected) {
+            int selColor = isFuture ? 0x25AAFFFF : 0x25AAFFAA;
+            int outColor = isFuture ? 0x6055FFFF : 0x60AAFFAA;
+            entry.surface(Surface.flat(selColor).and(Surface.outline(outColor)));
+        } else if (isFuture) {
+            entry.surface(Surface.flat(0x18005577));
+        }
         if (onClick != null) entry.cursorStyle(CursorStyle.HAND);
 
         FlowLayout gutter = Containers.verticalFlow(Sizing.fixed(16), Sizing.fill(100));
         gutter.horizontalAlignment(HorizontalAlignment.CENTER);
 
         FlowLayout topConnector = Containers.horizontalFlow(Sizing.fixed(2), Sizing.fixed(13));
-        if (topLine) topConnector.surface(Surface.flat(0x99AAAAAA));
+        if (topLine) {
+            int lineColor = isFuture ? 0x66AACCCC : 0x99AAAAAA;
+            topConnector.surface(Surface.flat(lineColor));
+        }
         gutter.child(topConnector);
 
         FlowLayout dot = Containers.horizontalFlow(Sizing.fixed(8), Sizing.fixed(8));
-        int dotColor = selected ? 0xFF66FF66
-                : onClick == null ? 0xFFFFFFFF
-                : 0xAAAAAAAA;
+        int dotColor;
+        if (selected) {
+            dotColor = isFuture ? 0xFF55FFFF : 0xFF66FF66;
+        } else if (style == NodeStyle.FUTURE_NEXT) {
+            dotColor = 0xFF55CCDD;
+        } else if (style == NodeStyle.FUTURE) {
+            dotColor = 0xFF336677;
+        } else if (style == NodeStyle.BASE) {
+            dotColor = 0xFFFFFFFF;
+        } else if (style == NodeStyle.HEAD) {
+            dotColor = 0xFF11FF11;
+        } else if (style == NodeStyle.PENDING) {
+            dotColor = 0xFFFAD643;
+        } else {
+            dotColor = 0xAAAAAAAA;
+        }
         dot.surface(Surface.flat(dotColor));
         gutter.child(dot);
 
-        FlowLayout bottomConnector = Containers.horizontalFlow(Sizing.fixed(2), Sizing.fill(100));
-        if (bottomLine) bottomConnector.surface(Surface.flat(0x99AAAAAA));
+        FlowLayout bottomConnector =
+                Containers.horizontalFlow(Sizing.fixed(2), Sizing.fill(100));
+        if (bottomLine) {
+            int lineColor = isFuture ? 0x66AACCCC : 0x99AAAAAA;
+            bottomConnector.surface(Surface.flat(lineColor));
+        }
         gutter.child(bottomConnector);
 
         entry.child(gutter);
@@ -327,36 +435,52 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
         content.padding(Insets.left(3));
 
         LabelComponent lbl = Components.label(label);
-        lbl.color(selected ? Color.ofArgb(0xFFFFFFFF) : Color.WHITE);
+        if (style == NodeStyle.FUTURE && !selected) {
+            lbl.color(Color.ofArgb(0xAA88AAAA));
+        } else {
+            lbl.color(selected ? Color.ofArgb(0xFFFFFFFF) : Color.WHITE);
+        }
         content.child(lbl);
 
         if (changeCount > 0 || timestamp != null) {
             String meta = (changeCount > 0 ? changeCount + " ch" : "")
-                    + (timestamp != null ? (changeCount > 0 ? "  " : "") + ts(timestamp) : "");
-            content.child(Components.label(Component.literal(meta).withStyle(ChatFormatting.DARK_GREEN)));
+                    + (timestamp != null
+                    ? (changeCount > 0 ? "  " : "") + ts(timestamp)
+                    : "");
+            content.child(Components.label(
+                    Component.literal(meta).withStyle(ChatFormatting.DARK_GREEN))
+            );
         }
 
         entry.child(content);
 
-        if (onClick != null)
+        if (onClick != null) {
             entry.mouseDown().subscribe((x, y, b) -> {
                 Minecraft.getInstance().getSoundManager()
                         .play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1));
                 onClick.run();
                 return true;
             });
+        }
 
         return entry;
     }
 
-    private void selectLayer(RuleStackSyncPayload.LayerInfo layer) {
+    private void selectLayer(RuleStackSyncPayload.LayerInfo layer, boolean isFuture) {
         selectedLayerId = layer.id();
         rebuildTimeline();
 
-        MutableComponent header = Component.literal("#" + layer.id() + " ").withStyle(ChatFormatting.YELLOW);
+        MutableComponent header =
+                Component.literal("#" + layer.id() + " ").withStyle(ChatFormatting.YELLOW);
         if (!layer.message().isEmpty())
-            header.append(Component.literal("\"" + layer.message() + "\"").withStyle(ChatFormatting.UNDERLINE).withStyle(ChatFormatting.WHITE));
+            header.append(Component.literal("\"" + layer.message() + "\"")
+                    .withStyle(ChatFormatting.UNDERLINE)
+                    .withStyle(ChatFormatting.WHITE));
         header.append(Component.literal(" (" + layer.changes().size() + " ch)"));
+        if (isFuture)
+            header.append(Component.literal(" ")
+                    .append(Component.translatable("gui.rulestack.future_marker")
+                            .withStyle(ChatFormatting.AQUA)));
 
         rebuildChanges(layer.changes(), header);
     }
@@ -364,7 +488,6 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
     private void selectPending() {
         selectedLayerId = -1;
         rebuildTimeline();
-
         var data = CarpetGUIClient.cachedRuleStackData;
         if (data == null) return;
         rebuildChanges(data.pendingChanges(),
@@ -373,7 +496,8 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
                         .withStyle(ChatFormatting.AQUA));
     }
 
-    private void rebuildChanges(List<RuleStackSyncPayload.ChangeInfo> changes, Component header) {
+    private void rebuildChanges(List<RuleStackSyncPayload.ChangeInfo> changes,
+                                Component header) {
         if (changesHeaderLabel != null) changesHeaderLabel.text(header);
         if (changesLayout == null) return;
         changesLayout.clearChildren();
@@ -393,13 +517,16 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
         card.margins(Insets.bottom(1));
 
         String managerId = c.managerId();
-        if(managerId.startsWith("gamerule")){managerId = managerId.split("\\$")[0];}
+        if (managerId.startsWith("gamerule")) {
+            managerId = managerId.split("\\$")[0];
+        }
 
         var nameRow = Containers.horizontalFlow(Sizing.fill(100), Sizing.content());
         nameRow.gap(5);
         nameRow.verticalAlignment(VerticalAlignment.CENTER);
-        nameRow.child(Components.label(Component.literal( c.ruleName())));
-        nameRow.child(Components.label(Component.literal("[" + managerId + "]").withStyle(ChatFormatting.BLUE)));
+        nameRow.child(Components.label(Component.literal(c.ruleName())));
+        nameRow.child(Components.label(
+                Component.literal("[" + managerId + "]").withStyle(ChatFormatting.BLUE)));
         card.child(nameRow);
 
         var valRow = Containers.horizontalFlow(Sizing.fill(100), Sizing.content());
@@ -423,16 +550,18 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
 
     public void onSync() {
         var data = CarpetGUIClient.cachedRuleStackData;
-         if (prefabNameLabel != null) {
+        if (prefabNameLabel != null) {
             String name = data != null ? data.activePrefabName() : "…";
-            prefabNameLabel.text(Component.translatable("gui.rulestack.prefab", name)
-                    .withStyle(ChatFormatting.YELLOW));
+            prefabNameLabel.text(
+                    Component.translatable("gui.rulestack.prefab", name)
+                            .withStyle(ChatFormatting.YELLOW));
         }
         if (prefabPanel == PrefabPanel.LIST) {
             prefabDynamic.clearChildren();
             fillPrefabList();
         }
 
+        selectedLayerId = null;
         rebuildTimeline();
 
         if (data == null || selectedLayerId == null) return;
@@ -441,22 +570,31 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
             if (data.pendingChanges().isEmpty()) {
                 selectedLayerId = null;
                 clearChangesPane();
-            } else selectPending();
+            } else {
+                selectPending();
+            }
         } else {
             int id = selectedLayerId;
-            data.layers().stream().filter(l -> l.id() == id).findFirst()
-                    .ifPresentOrElse(
-                            this::selectLayer,
-                            () -> {
-                                selectedLayerId = null;
-                                clearChangesPane();
-                            });
+            var found = data.layers().stream().filter(l -> l.id() == id).findFirst();
+            if (found.isPresent()) {
+                selectLayer(found.get(), false);
+                return;
+            }
+            var foundFuture = data.futureLayers().stream()
+                    .filter(l -> l.id() == id).findFirst();
+            if (foundFuture.isPresent()) {
+                selectLayer(foundFuture.get(), true);
+                return;
+            }
+            selectedLayerId = null;
+            clearChangesPane();
         }
     }
 
     private void clearChangesPane() {
         if (changesHeaderLabel != null)
-            changesHeaderLabel.text(Component.translatable("gui.rulestack.select_layer"));
+            changesHeaderLabel.text(
+                    Component.translatable("gui.rulestack.select_layer"));
         if (changesLayout != null) changesLayout.clearChildren();
     }
 
@@ -472,7 +610,16 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
         }
     }
 
-    private static String ts(long ms) {
-        return FMT.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(ms), ZoneId.systemDefault()));
+
+
+    private enum PrefabPanel {NONE, LIST, NEW_INPUT}
+
+    private enum NodeStyle {
+        NORMAL,
+        PENDING,
+        HEAD,
+        BASE,
+        FUTURE,
+        FUTURE_NEXT
     }
 }

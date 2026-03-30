@@ -39,6 +39,10 @@
   "gui.rulestack.btn.switch": "切换",
   "gui.rulestack.switch_warning": "有未存档的更改，其将被覆盖。按下Shift点击以确认",
   "gui.rulestack.btn.new_prefab": "新建",
+  "gui.rulestack.push_hint.redo": "Push 将重做：%1$s",
+  "gui.rulestack.push_hint.discard_future": "!Push 将丢弃 %1$s 个可重做帧",
+  "gui.rulestack.future_marker": "§b⟲",
+
   "commands.rulestack.not_init": "§cRuleStack 尚未初始化",
   "commands.rulestack.push.no_changes": "§c没有未提交的更改可推送",
   "commands.rulestack.push.success": "§a已推送 §e第 #%s%s 层 §a(%s 项更改)",
@@ -79,5 +83,9 @@
   "commands.rulestack.prefab.switch.not_found": "§c未找到预设 §e'%s'",
   "commands.rulestack.prefab.switch.already_active": "§c预设 §e'%s' §c已经处于激活状态",
   "commands.rulestack.prefab.switch.success_dirty": "§e! 已切换到 §6'%s'§e(上一个预设存在未提交更改，已丢弃)",
-  "commands.rulestack.prefab.switch.success": "§a> 已切换到预设 §e'%s'§a"
+  "commands.rulestack.prefab.switch.success": "§a> 已切换到预设 §e'%s'§a",
+  "commands.rulestack.push.redo": "已重做层 #%1$s%2$s（%3$s 项变更）",
+  "commands.rulestack.pop.redo_hint": "（此层已保留， 执行 push 可重做）",
+  "commands.rulestack.status.future_header": "\n可重做的层（%1$s 项）：",
+  "commands.rulestack.status.future_entry": "\n  %1$s#%2$s%3$s — %4$s 项变更  %5$s"
 }
