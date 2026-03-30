@@ -237,16 +237,18 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
         nameBox.setSuggestion("…");
         nameBox.focusGained().subscribe(s -> nameBox.setSuggestion(""));
         row.child(nameBox);
-        row.child(btn(Component.translatable("gui.rulegroups.save"),
+        FlowLayout newButton = btn(Component.translatable("gui.rulegroups.save"),
                 Sizing.fill(20), Sizing.fill(100),
                 () -> {
                     String n = nameBox.getValue().trim();
                     if (!n.isEmpty()) {
-                        sendCmd("rulestack prefab create " + n + " false");
+                        sendCmd("rulestack prefab create " + n + " " + (Screen.hasAltDown()?"true":"false"));
                         prefabDynamic.clearChildren();
                         prefabPanel = PrefabPanel.NONE;
                     }
-                }));
+                });
+        newButton.tooltip(Component.translatable("gui.tip.fork_current"));
+        row.child(newButton);
         prefabDynamic.child(row);
     }
 
