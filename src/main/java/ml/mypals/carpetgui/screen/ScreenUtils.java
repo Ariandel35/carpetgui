@@ -99,7 +99,9 @@ public class ScreenUtils {
         buttons.child(saveBtn);
 
         saveDialog.child(buttons);
-
+        //?if<1.21.5{
+        saveDialog.zIndex(500);
+        //?}
         OverlayContainer<FlowLayout> dialogOverlay = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.overlay(saveDialog);
         dialogOverlay.closeOnClick(true);
         return new DialogResult(dialogOverlay, saveDialog);
@@ -110,7 +112,7 @@ public class ScreenUtils {
 
         if (dialogOverlay.parent() != null) return;
 
-        rootComponent.child(dialogOverlay);
+        rootComponent.child(rootComponent.children().size(), dialogOverlay);
     }
 
 

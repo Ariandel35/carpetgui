@@ -46,12 +46,18 @@ public class RuleGroupScreen extends BaseOwoScreen<FlowLayout> {
 
     @Override
     protected void build(FlowLayout root) {
+
+        var outline = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.fill(100));
+        outline.surface(Surface.outline(0xAAFFFFFF));
+        outline.padding(Insets.of(2));
+
+
+        root.padding(Insets.of(20,20,10,10));
         cachedManagers = RulesCacheManager.loadKnownManagers();
         root.surface(Surface.blur(10, 10));
 
         List<RuleGroup> groups = RuleGroupLoader.loadAll();
 
-        FlowLayout main = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.fill(100));
 
         this.leftContent = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(100), Sizing.content());
         this.leftContent.gap(2);
@@ -68,14 +74,14 @@ public class RuleGroupScreen extends BaseOwoScreen<FlowLayout> {
 
         var rulesScroll = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalScroll(
                 Sizing.fill(100),
-                Sizing.fill(90),
+                Sizing.fill(80),
                 this.leftContent
         );
         rulesScroll.surface(Surface.flat(0x19000000));
 
         FlowLayout bottomBar = buildBottomBar();
 
-        FlowLayout leftPanel = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(80), Sizing.fill(100));
+        FlowLayout leftPanel = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(80), Sizing.fill(99));
         leftPanel.child(rulesScroll.sizing(Sizing.fill(100), Sizing.fill(90)));
         leftPanel.child(bottomBar.positioning(Positioning.relative(0, 99))
                 .sizing(Sizing.fill(100), Sizing.fill(6)));
@@ -95,10 +101,10 @@ public class RuleGroupScreen extends BaseOwoScreen<FlowLayout> {
         );
         rightScroll.surface(Surface.flat(0x66000000));
 
-        main.child(leftPanel);
-        main.child(rightScroll);
 
-        root.child(main);
+        outline.child(leftPanel);
+        outline.child(rightScroll);
+        root.child(outline);
     }
 
     @Override

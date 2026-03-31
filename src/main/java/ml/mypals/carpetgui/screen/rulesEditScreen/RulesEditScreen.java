@@ -93,9 +93,33 @@ public class RulesEditScreen extends BaseOwoScreen<FlowLayout> {
 
     @Override
     protected void build(FlowLayout root) {
+
+        root.padding(Insets.of(20,20,10,10));
+
+
+        var outline = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.fill(100));
+        outline.surface(Surface.outline(0xAAFFFFFF));
+        outline.padding(Insets.of(1));
+
+        ScreenUtils.DialogResult dialogResult = ScreenUtils.createSaveGroupDialog(
+                this::saveModifiedRulesAsGroup,
+                (ingnored) -> {
+                    ScreenUtils.hideSaveDialog(this.uiAdapter.rootComponent, dialogOverlay);
+                    if (!this.instantAffect) {
+                        instantAffect = true;
+                        Minecraft.getInstance().setScreen(new RuleGroupScreen());
+                    }
+                });
+
+        saveDialog = dialogResult.dialog();
+        dialogOverlay = dialogResult.overlay();
+
         root.surface(Surface.blur(10, 10));
 
-        var leftPanel = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(66), Sizing.content());
+        var leftPanel = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(66), Sizing.fill(100));
+        leftPanel.surface(Surface.flat(0x99000000));
+        leftPanel.padding(Insets.of(5));
+
 
         var searchRow = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.fixed(14));
         searchRow.verticalAlignment(VerticalAlignment.CENTER);
@@ -115,7 +139,6 @@ public class RulesEditScreen extends BaseOwoScreen<FlowLayout> {
         searchBox.focusGained().subscribe(source -> this.onSearch(searchBox.getValue()));
         searchRow.child(searchBox);
         leftPanel.child(searchRow);
-        leftPanel.allowOverflow();
         rulesListLayout = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(99), Sizing.content());
         rulesScroll = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalScroll(
                 Sizing.fill(100), Sizing.fill(100), rulesListLayout);
@@ -141,23 +164,20 @@ public class RulesEditScreen extends BaseOwoScreen<FlowLayout> {
         categoriesScroll.scrollbarThiccness(10);
         rightPanel.child(categoriesScroll);
 
-        root.child(leftPanel);
-        root.child(rightPanel);
+        outline.child(leftPanel);
+        outline.child(rightPanel);
+
+
+
+
+        root.horizontalAlignment(HorizontalAlignment.CENTER);
+        root.verticalAlignment(VerticalAlignment.CENTER);
+
+        root.child(outline );
 
         setCurrentCategory(cachedCategories.getFirst());
 
-        ScreenUtils.DialogResult dialogResult = ScreenUtils.createSaveGroupDialog(
-                this::saveModifiedRulesAsGroup,
-                (ingnored) -> {
-                    ScreenUtils.hideSaveDialog(this.uiAdapter.rootComponent, dialogOverlay);
-                    if (!this.instantAffect) {
-                        instantAffect = true;
-                        Minecraft.getInstance().setScreen(new RuleGroupScreen());
-                    }
-                });
 
-        saveDialog = dialogResult.dialog();
-        dialogOverlay = dialogResult.overlay();
 
         //? if <1.21.9 {
         ScreenKeyboardEvents.afterKeyPress(this).register((screen, key, scancode, modifiers) -> {

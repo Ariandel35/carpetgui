@@ -75,8 +75,16 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
     protected void build(FlowLayout root) {
         INSTANCE = this;
         root.surface(Surface.blur(10, 10));
-        root.child(buildLeftPanel());
-        root.child(buildRightPanel());
+        root.padding(Insets.of(20,20,10,10));
+
+        var outline = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.fill(100));
+        outline.surface(Surface.outline(0xAAFFFFFF));
+        outline.padding(Insets.of(1));
+
+        outline.child(buildLeftPanel());
+        outline.child(buildRightPanel());
+        root.child(outline);
+
         requestSync();
     }
 
@@ -88,6 +96,7 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
                 /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalScroll(Sizing.fill(100), Sizing.fill(100), changesLayout);
         scroll.surface(Surface.flat(0x66000000));
         scroll.scrollbar(ScrollContainer.Scrollbar.flat(Color.WHITE));
+        scroll.padding(Insets.of(2,2,2,2));
         panel.child(scroll);
         return panel;
     }
@@ -126,7 +135,7 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
 
         timelineLayout = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(100), Sizing.content());
         ScrollContainer<FlowLayout> timelineScroll =
-                /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalScroll(Sizing.fill(100), Sizing.fill(70), timelineLayout);
+                /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalScroll(Sizing.fill(100), Sizing.fill(60), timelineLayout);
         timelineScroll.surface(Surface.flat(0x15000000));
         timelineScroll.scrollbar(ScrollContainer.Scrollbar.flat(Color.WHITE));
         panel.child(timelineScroll);
