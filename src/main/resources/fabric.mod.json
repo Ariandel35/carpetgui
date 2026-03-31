@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "id": "${id}",
+  "id": "carpetgui",
   "version": "${version}",
   "name": "${name}",
-  "description": "Gui for carpet",
+  "description": "Cool gui for carpet mod",
   "authors": [
-    "CarpetGUI"
+    "Ryan100C"
   ],
   "license": "MIT",
   "icon": "assets/carpetgui/icon.png",
@@ -21,10 +21,11 @@
   "mixins": [
     "carpetgui.mixins.json"
   ],
-  "accessWidener": "carpetgui.accesswidener",
   "depends": {
-    "fabricloader": ">=0.15",
+    "fabricloader": "*",
     "minecraft": "${minecraft}",
-	"fabric-api": "*"
+	"fabric-api": "*",
+    "carpet": "*",
+    "owo": "*"
   }
 }

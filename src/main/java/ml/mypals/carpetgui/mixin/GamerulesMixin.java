@@ -1,6 +1,9 @@
 package ml.mypals.carpetgui.mixin;
 
+//? if <1.21.11 {
+
 import ml.mypals.carpetgui.settings.GamerulesDefaultValueSorter;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.GameRules;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
@@ -45,3 +48,10 @@ public class GamerulesMixin {
         type.callVisitor(DETECTOR, cir.getReturnValue());
     }
 }
+//?} else {
+/*import net.minecraft.client.Minecraft;
+import org.spongepowered.asm.mixin.Mixin;
+@Mixin(Minecraft.class)
+public class GamerulesMixin {
+}
+*///?}

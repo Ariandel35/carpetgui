@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import ml.mypals.carpetgui.localChache.RulesCacheManager;
 import ml.mypals.carpetgui.mixin.accessors.KeyMappingAccessor;
 import ml.mypals.carpetgui.network.RuleData;
+import ml.mypals.carpetgui.network.client.CarpetGUIClientPacketHandler;
 import ml.mypals.carpetgui.network.client.RequestRuleStackPayload;
 import ml.mypals.carpetgui.network.client.RequestRulesPayload;
 import ml.mypals.carpetgui.network.server.HelloPacketPayload;
@@ -24,6 +25,7 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.lwjgl.glfw.GLFW;
@@ -32,6 +34,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import static ml.mypals.carpetgui.CarpetGUI.MOD_ID;
 
 public class CarpetGUIClient implements ClientModInitializer {
 
@@ -82,10 +86,14 @@ public class CarpetGUIClient implements ClientModInitializer {
 
 
         carpetRulesKeyBind = KeyBindingHelper.registerKeyBinding(new KeyMapping(
-                "key.carpetRulesKeyBind",
+                "carpetgui.key.carpetRulesKeyBind",
                 InputConstants.Type.KEYSYM,
                 GLFW.GLFW_KEY_F9,
-                "key.category.carpetgui.name"
+                //? if <1.21.9 {
+                "key.category.carpetgui.main"
+                //?} else {
+                /*KeyMapping.Category.register(ResourceLocation.fromNamespaceAndPath(MOD_ID,"main"))
+                *///?}
         ));
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (carpetRulesKeyBind.consumeClick()) {
@@ -98,69 +106,43 @@ public class CarpetGUIClient implements ClientModInitializer {
             hasModOnServer = false;
             rulesFromServer.clear();
         });
-        ClientPlayNetworking.registerGlobalReceiver(HelloPacketPayload.ID,
-                (payload, context) -> context.client().execute(() -> {
-                    hasModOnServer = true;
-                })
+        //? if >=1.20.5 {
+        ClientPlayNetworking.registerGlobalReceiver(
+                HelloPacketPayload.ID,
+                (payload, context)-> CarpetGUIClientPacketHandler.handleHelloPacket(payload)
         );
-        ClientPlayNetworking.registerGlobalReceiver(RuleStackSyncPayload.ID,
-                (payload, context) ->  context.client().execute(() -> {
-            cachedRuleStackData = new RuleStackData(payload.activePrefabName(), payload.allPrefabNames(), payload.layers(), payload.pendingChanges(), payload.futureLayers());
-            if(RuleStackScreen.INSTANCE != null){
-                RuleStackScreen.INSTANCE.onSync();
-            }
-        }));
 
+        ClientPlayNetworking.registerGlobalReceiver(
+                RuleStackSyncPayload.ID,
+                (payload, context)-> CarpetGUIClientPacketHandler.handleRuleStackSync(payload)
+        );
 
-        ClientPlayNetworking.registerGlobalReceiver(RulesPacketPayload.ID,
-                (payload, context) -> context.client().execute(() -> {
-                    Minecraft client = Minecraft.getInstance();
-                    boolean fromRuleGroupScreen = client.screen instanceof RuleGroupScreen;
-                    hasModOnServer = true;
+        ClientPlayNetworking.registerGlobalReceiver(
+                RulesPacketPayload.ID,
+                (payload, context)-> CarpetGUIClientPacketHandler.handleRulesPacket(payload)
+        );
+        //?} else {
+        /*ClientPlayNetworking.registerGlobalReceiver(
+                HelloPacketPayload.ID,
+                (helloPacketPayload, localPlayer, packetSender) -> {
+                    CarpetGUIClientPacketHandler.handleHelloPacket(helloPacketPayload);
+                }
+        );
 
-                    cachedRules.clear();
-                    cachedRules.addAll(payload.rules());
+        ClientPlayNetworking.registerGlobalReceiver(
+                RuleStackSyncPayload.ID,
+                (ruleStackSyncPayload, localPlayer, packetSender) -> {
+                    CarpetGUIClientPacketHandler.handleRuleStackSync(ruleStackSyncPayload);
+                }
+        );
 
-                    cachedCategories.clear();
-                    for (var entry : RulesEditScreen.DefaultCategory.values()) {
-                        if (!entry.equals(RulesEditScreen.DefaultCategory.SEARCHING))
-                            cachedCategories.add(entry.getName());
-                    }
-                    Set<String> categories = new LinkedHashSet<>();
-
-                    ListIterator<RuleData> it = cachedRules.listIterator();
-                    while (it.hasNext()) {
-                        RuleData data = it.next();
-
-                        for (Map.Entry<?, String> entry : data.categories) {
-                            categories.add(entry.getValue());
-                        }
-
-                        if (fromRuleGroupScreen) {
-                            data.value = data.defaultValue;
-                            it.set(data);
-                        }
-                    }
-                    cachedCategories.addAll(categories);
-
-                    defaultRules.clear();
-                    if (!fromRuleGroupScreen) {
-                        defaultRules.addAll(Arrays.stream(payload.defaults().split(";")).toList());
-                    }
-
-                    favoriteRules.clear();
-                    favoriteRules.addAll(CarpetGUIConfigManager.readFavoriteRules());
-                    String lang = client.getLanguageManager().getSelected();
-                    Thread.ofVirtual().name("carpetgui-cache-save").start(
-                            () -> {
-                                RulesCacheManager.saveCache(cachedRules, payload.defaults(), lang);
-                                cachedManagers = RulesCacheManager.loadKnownManagers();
-                            }
-                    );
-
-                    requesting = false;
-                    client.setScreen(new RulesEditScreen(!fromRuleGroupScreen));
-                }));
+        ClientPlayNetworking.registerGlobalReceiver(
+                RulesPacketPayload.ID,
+                (rulesPacketPayload, localPlayer, packetSender) -> {
+                    CarpetGUIClientPacketHandler.handleRulesPacket(rulesPacketPayload);
+                }
+        );
+        *///?}
     }
 
     public static void openRuleEditScreen(boolean instantAffect) {

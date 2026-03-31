@@ -3,12 +3,19 @@ package ml.mypals.carpetgui.ruleStack;
 
 import carpet.CarpetServer;
 import carpet.api.settings.CarpetRule;
+import ml.mypals.carpetgui.CarpetGUI;
 import ml.mypals.carpetgui.accessors.CommandSourceStackAccessor;
 import ml.mypals.carpetgui.mixin.accessors.GameRulesAccessor;
 import ml.mypals.carpetgui.mixin.accessors.SettngsManagerAccessor;
 import ml.mypals.carpetgui.settings.GamerulesDefaultValueSorter;
 import net.minecraft.commands.CommandSourceStack;
+//? if <1.21.11 {
 import net.minecraft.world.level.GameRules;
+//?} else {
+/*import net.minecraft.world.level.gamerules.GameRule;
+import net.minecraft.world.level.gamerules.GameRuleType;
+import net.minecraft.world.level.gamerules.GameRuleTypeVisitor;import net.minecraft.world.level.gamerules.GameRules;
+*///?}
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -27,7 +34,7 @@ public final class SettingsWatcher {
         Map<String, Set<String>> defaultedRules = readAllDefaults();
 
         Map<String, RuleValueSnapshot> snap = new LinkedHashMap<>();
-        CarpetServer.forEachManager(mgr -> {
+        CarpetGUI.forEachCarpetManager(mgr -> {
             String id = mgr.identifier();
             Set<String> defaults = defaultedRules.getOrDefault(id, Set.of());
             for (CarpetRule<?> rule : mgr.getCarpetRules()) {
@@ -38,6 +45,7 @@ public final class SettingsWatcher {
             }
         });
 
+        //? if <1.21.11 {
         ((GameRulesAccessor) CarpetServer.minecraft_server.getGameRules()).carpetGUI$getRules().forEach(
                 (k, v) -> {
                     String key = "gamerule$" + k.getCategory().getDescriptionId() + ":" + k.getId();
@@ -45,12 +53,23 @@ public final class SettingsWatcher {
                     snap.put(key, new RuleValueSnapshot(val, false));
                 }
         );
+        //?} else {
+        /*GameRules gameRules = CarpetServer.minecraft_server.getWorldData().getGameRules();
+        gameRules.availableRules().toList().forEach(
+                (rule) -> {
+                    String key = "gamerule$" + rule.category() + ":" + rule.id();
+                    String val = gameRules.get(rule).toString();
+                    snap.put(key, new RuleValueSnapshot(val, false));
+                }
+        );
+        *///?}
+
         return snap;
     }
 
     private static Map<String, Set<String>> readAllDefaults() {
         Map<String, Set<String>> result = new HashMap<>();
-        CarpetServer.forEachManager(mgr -> {
+        CarpetGUI.forEachCarpetManager(mgr -> {
             Set<String> names = new HashSet<>(readDefaultSettingsFromConf(getCarpetDefaultsConfigFile()));
             result.put(mgr.identifier(), names);
         });
@@ -59,7 +78,7 @@ public final class SettingsWatcher {
 
     public static Map<String, RuleValueSnapshot> makeDefaultSnapshot() {
         Map<String, RuleValueSnapshot> snap = new LinkedHashMap<>();
-        CarpetServer.forEachManager(mgr -> {
+        CarpetGUI.forEachCarpetManager(mgr -> {
             String id = mgr.identifier();
             for (CarpetRule<?> rule : mgr.getCarpetRules()) {
                 snap.put(id + ":" + rule.name(),
@@ -67,17 +86,27 @@ public final class SettingsWatcher {
             }
         });
 
+        //? if <1.21.11 {
         GamerulesDefaultValueSorter.gamerulesDefaultValues.forEach(
                 (k, v) -> {
                     String key = "gamerule$" + k.getCategory().getDescriptionId() + ":" + k.getId();
                     snap.put(key, new RuleValueSnapshot(v, false));
                 }
         );
+        //?} else {
+        /*GameRules gameRules = CarpetServer.minecraft_server.getWorldData().getGameRules();
+        gameRules.availableRules().toList().forEach(
+                (rule) -> {
+                    String key = "gamerule$" + rule.category() + ":" + rule.id();
+                    snap.put(key, new RuleValueSnapshot(rule.defaultValue().toString(), false));
+                }
+        );
+        *///?}
         return snap;
     }
 
     public static void applyRule(String ruleKey, RuleValueSnapshot snapshot, CommandSourceStack source) {
-        boolean silentOrg = source.isSilent();
+        boolean silentOrg = ((CommandSourceStackAccessor) source).carpetGUI$getSilent();
         ((CommandSourceStackAccessor) source).carpetGUI$setSilent(true);
         int sep = ruleKey.indexOf(':');
         if (sep < 0) return;
@@ -85,8 +114,9 @@ public final class SettingsWatcher {
         String ruleName = ruleKey.substring(sep + 1);
 
         if (managerId.startsWith("gamerule")) {
+            //? if <1.21.11 {
             GameRules gameRules = source.getServer().getGameRules();
-            GameRules.Key<?> key = findRuleKey(ruleName);
+            GameRules.Key<?> key = findRuleKey(ruleName, gameRules);
 
             if (key == null) return;
 
@@ -106,8 +136,19 @@ public final class SettingsWatcher {
                 }
             } catch (Exception ignored) {
             }
+            //?} else {
+            /*GameRules gameRules = CarpetServer.minecraft_server.getWorldData().getGameRules();
+            GameRule<?> rule = findRule(ruleName, gameRules);
+            try{
+                if(rule.gameRuleType() == GameRuleType.BOOL){
+                    gameRules.set((GameRule<Boolean>)rule, Boolean.parseBoolean(snapshot.value()), CarpetServer.minecraft_server);
+                }else if(rule.gameRuleType() == GameRuleType.INT){
+                    gameRules.set((GameRule<Integer>)rule, Integer.parseInt(snapshot.value()), CarpetServer.minecraft_server);
+                }
+            }catch (Exception ignored){}
+            *///?}
         } else {
-            CarpetServer.forEachManager(mgr -> {
+            CarpetGUI.forEachCarpetManager(mgr -> {
                 if (!mgr.identifier().equals(managerId)) return;
                 CarpetRule<?> rule = mgr.getCarpetRule(ruleName);
                 if (rule == null) return;
@@ -125,10 +166,11 @@ public final class SettingsWatcher {
         ((CommandSourceStackAccessor) source).carpetGUI$setSilent(silentOrg);
     }
 
-    private static GameRules.Key<?> findRuleKey(String name) {
+    //? if <1.21.11 {
+    private static GameRules.Key<?> findRuleKey(String name, GameRules gameRules) {
         final GameRules.Key<?>[] result = new GameRules.Key<?>[1];
 
-        GameRules.visitGameRuleTypes(new GameRules.GameRuleTypeVisitor() {
+        gameRules.visitGameRuleTypes(new GameRules.GameRuleTypeVisitor() {
             @Override
             public <T extends GameRules.Value<T>> void visit(GameRules.@NotNull Key<T> key, GameRules.@NotNull Type<T> type) {
                 if (key.getId().equals(name)) {
@@ -139,4 +181,21 @@ public final class SettingsWatcher {
 
         return result[0];
     }
+    //?} else {
+    /*private static GameRule<?> findRule(String name, GameRules gameRules) {
+        final GameRule<?>[] result = new GameRule[1];
+
+        gameRules.visitGameRuleTypes(new  GameRuleTypeVisitor() {
+            @Override
+            public <T> void visit(@NotNull GameRule<T> gameRule) {
+                if (gameRule.id().equals(name)) {
+                    result[0] = gameRule;
+                }
+            }
+        });
+
+        return result[0];
+    }
+
+    *///?}
 }

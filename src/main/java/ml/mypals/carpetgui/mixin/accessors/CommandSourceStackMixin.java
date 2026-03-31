@@ -16,4 +16,11 @@ public class CommandSourceStackMixin implements CommandSourceStackAccessor {
     public void carpetGUI$setSilent(boolean silent) {
         this.silent = silent;
     }
+
+
+    @Override
+    public boolean carpetGUI$getSilent() {
+    return silent;
+    }
+
 }

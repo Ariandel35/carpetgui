@@ -2,7 +2,6 @@ package ml.mypals.carpetgui.translate;
 
 import carpet.CarpetExtension;
 import carpet.CarpetServer;
-import carpet.utils.TranslationKeys;
 import com.google.gson.JsonObject;
 import ml.mypals.carpetgui.CarpetGUI;
 import net.fabricmc.loader.api.FabricLoader;
@@ -20,13 +19,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static net.fabricmc.fabric.impl.resource.loader.ModResourcePackUtil.GSON;
+import static ml.mypals.carpetgui.CarpetGUI.GSON;
 
 public class TranslationHelper {
+
+    public static final String BASE_RULE_NAMESPACE = "%s.rule.";
+    public static final String BASE_RULE_PATTERN = "%s.rule.%s.";
+    public static final String RULE_NAME_PATTERN = "%s.rule.%s.name";
+    public static final String RULE_DESC_PATTERN = "%s.rule.%s.desc";
+    public static final String RULE_EXTRA_PREFIX_PATTERN = "%s.rule.%s.extra.";
+    public static final String CATEGORY_PATTERN = "%s.category.%s";
     private static final Map<String, Map<String, String>> TRANSLATION_CACHE = new HashMap<>();
 
     public static String getCategoryTranslation(String lang, String manager, @NotNull String originalName) {
-        String key = TranslationKeys.CATEGORY_PATTERN.formatted(manager, originalName);
+        String key = CATEGORY_PATTERN.formatted(manager, originalName);
         String baseName = resolveBaseName(key, originalName);
         try {
             Map<String, String> translations = getTranslations(lang);
@@ -41,7 +47,7 @@ public class TranslationHelper {
     }
 
     public static String getNameTranslation(String lang, String manager, @NotNull String originalName) {
-        String key = TranslationKeys.RULE_NAME_PATTERN.formatted(manager, originalName);
+        String key = RULE_NAME_PATTERN.formatted(manager, originalName);
         String baseName = resolveBaseName(key, originalName);
         try {
             Map<String, String> translations = getTranslations(lang);
@@ -56,8 +62,8 @@ public class TranslationHelper {
     }
 
     public static String getDescTranslation(String lang, String manager, @NotNull String originalName) {
-        String key = TranslationKeys.RULE_DESC_PATTERN.formatted(manager, originalName);
-        String extraKey = TranslationKeys.RULE_EXTRA_PREFIX_PATTERN.formatted(manager, originalName);
+        String key = RULE_DESC_PATTERN.formatted(manager, originalName);
+        String extraKey = RULE_EXTRA_PREFIX_PATTERN.formatted(manager, originalName);
         try {
             Map<String, String> translations = getTranslations(lang);
             String translation = translations.get(key);

@@ -1,32 +1,15 @@
-/*
- * This file is part of the Yet Another Carpet Addition project, licensed under the
- * GNU Lesser General Public License v3.0
- *
- * Copyright (C) 2025  Ryan100c and contributors
- *
- * Yet Another Carpet Addition is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Yet Another Carpet Addition is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Yet Another Carpet Addition.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 package ml.mypals.carpetgui.network.server;
 
 import ml.mypals.carpetgui.network.PacketIDs;
 import ml.mypals.carpetgui.network.RuleData;
 import net.minecraft.network.FriendlyByteBuf;
+import java.util.List;
+
+//? if >= 1.20.5 {
+
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public record RulesPacketPayload(List<RuleData> rules, String defaults) implements CustomPacketPayload {
 
@@ -43,8 +26,29 @@ public record RulesPacketPayload(List<RuleData> rules, String defaults) implemen
     }
 
     @Override
-    public Type<? extends CustomPacketPayload> type() {
+    public @NotNull Type<? extends CustomPacketPayload> type() {
         return ID;
     }
-
 }
+//?} else {
+/*import net.fabricmc.fabric.api.networking.v1.FabricPacket;
+import net.fabricmc.fabric.api.networking.v1.PacketType;
+
+public record RulesPacketPayload(List<RuleData> rules, String defaults) implements FabricPacket {
+
+    public static final PacketType<RulesPacketPayload> ID = PacketType.create(
+            PacketIDs.SYNC_RULES_ID,
+            buf -> new RulesPacketPayload(buf.readList(RuleData::new), buf.readUtf())
+    );
+
+    public void write(FriendlyByteBuf buf) {
+        buf.writeCollection(this.rules, (b, v) -> v.write(b));
+        buf.writeUtf(this.defaults);
+    }
+
+    @Override
+    public PacketType<?> getType() {
+        return ID;
+    }
+}
+*///?}

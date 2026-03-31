@@ -8,12 +8,21 @@ import io.wispforest.owo.ui.component.LabelComponent;
 import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.core.*;
-import ml.mypals.carpetgui.mixin.accessors.KeyMappingAccessor;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.GameNarrator;
-import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+//? if >1.19.4 {
 import net.minecraft.client.gui.GuiGraphics;
+//?} else {
+/*import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+*///?}
+//? if >= 1.21.6 {
+/*import net.minecraft.client.renderer.RenderPipelines;
+*///?} else if > 1.21.1 {
+/*import net.minecraft.client.renderer.RenderType;
+*///?}
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -26,16 +35,18 @@ import java.util.List;
 @Environment(EnvType.CLIENT)
 public class ScreenSwitcherScreen extends BaseOwoScreen<FlowLayout> {
 
+    static final ResourceLocation SLOT_LOCATION =
+            ResourceLocation.fromNamespaceAndPath("minecraft", "textures/gui/container/gamemode_switcher.png");
     static final ResourceLocation SLOT_SPRITE =
-            ResourceLocation.withDefaultNamespace("gamemode_switcher/slot");
+            ResourceLocation.fromNamespaceAndPath("minecraft", "gamemode_switcher/slot");
     static final ResourceLocation SELECTION_SPRITE =
-            ResourceLocation.withDefaultNamespace("gamemode_switcher/selection");
+            ResourceLocation.fromNamespaceAndPath("minecraft", "gamemode_switcher/selection");
 
     private static final int SLOT_AREA    = 26;
     private static final int SLOT_PADDING = 5;
     private static final int ICON_OFFSET  = 5;
 
-    private long openTime;
+    private final long openTime;
     private static final long HOLD_THRESHOLD = 300;
 
     private static int triggerKey;
@@ -62,7 +73,7 @@ public class ScreenSwitcherScreen extends BaseOwoScreen<FlowLayout> {
     }
     @Override
     protected @NotNull OwoUIAdapter<FlowLayout> createAdapter() {
-        return OwoUIAdapter.create(this, Containers::verticalFlow);
+        return OwoUIAdapter.create(this, /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/::verticalFlow);
     }
 
     @Override
@@ -71,13 +82,13 @@ public class ScreenSwitcherScreen extends BaseOwoScreen<FlowLayout> {
                 .verticalAlignment(VerticalAlignment.CENTER)
                 .sizing(Sizing.fill(100), Sizing.fill(100));
 
-        titleLabel = Components.label(
+        titleLabel = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(
                 currentlyHovered != null ? currentlyHovered.name() : Component.empty());
         titleLabel.color(Color.ofArgb(0xFFFFFFFF));
         titleLabel.margins(Insets.bottom(14));
         root.child(titleLabel);
 
-        FlowLayout slotsRow = Containers.horizontalFlow(Sizing.content(), Sizing.content());
+        FlowLayout slotsRow = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.content(), Sizing.content());
         slotsRow.gap(SLOT_PADDING);
 
         slotComponents.clear();
@@ -87,7 +98,11 @@ public class ScreenSwitcherScreen extends BaseOwoScreen<FlowLayout> {
                  currentlyHovered = entry;
                  updateSelection();
             });
-            slot.mouseDown().subscribe((x,y,btn) -> {
+            //? if <1.21.9 {
+            slot.mouseDown().subscribe((x, y, btn) -> {
+             //?} else {
+            /*slot.mouseDown().subscribe((mouseButtonEvent, btn) -> {
+            *///?}
                 openSelected();
                 return true;
             });
@@ -101,14 +116,18 @@ public class ScreenSwitcherScreen extends BaseOwoScreen<FlowLayout> {
     }
 
 
+    //? if >1.19.4 {
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         if (checkToClose()) return;
         super.render(guiGraphics, mouseX, mouseY, delta);
     }
-
-    @Override
-    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {}
+    //?} else {
+    /*@Override
+    public void render(@NotNull PoseStack poseStack, int mouseX, int mouseY, float delta) {
+        if (checkToClose()) return;
+        super.render(poseStack, mouseX, mouseY, delta);
+    }*///?}
 
     @Override
     public boolean isPauseScreen() { return false; }
@@ -122,7 +141,7 @@ public class ScreenSwitcherScreen extends BaseOwoScreen<FlowLayout> {
 
     private boolean checkToClose() {
         if (minecraft == null) return false;
-        boolean keyStillHeld = InputConstants.isKeyDown(minecraft.getWindow().getWindow(), triggerKey);
+        boolean keyStillHeld = InputConstants.isKeyDown(minecraft.getWindow()/*? if <1.21.9 {*/.getWindow()/*?}*/, triggerKey);
         long heldTime = System.currentTimeMillis() - openTime;
         if (!keyStillHeld) {
             if (heldTime < HOLD_THRESHOLD && triggerKey == GLFW.GLFW_KEY_ESCAPE) {
@@ -137,7 +156,7 @@ public class ScreenSwitcherScreen extends BaseOwoScreen<FlowLayout> {
     }
 
     public void onClose(){
-        if(minecraft == null || !InputConstants.isKeyDown(minecraft.getWindow().getWindow(), GLFW.GLFW_KEY_ESCAPE)){
+        if(minecraft == null || !InputConstants.isKeyDown(Minecraft.getInstance().getWindow()/*? if <1.21.9 {*/.getWindow()/*?}*/, GLFW.GLFW_KEY_ESCAPE)){
             super.onClose();
         }
     }
@@ -150,7 +169,7 @@ public class ScreenSwitcherScreen extends BaseOwoScreen<FlowLayout> {
 
 
     @Environment(EnvType.CLIENT)
-    public static class ScreenSlotComponent extends BaseComponent {
+    public class ScreenSlotComponent extends BaseComponent {
 
         final ScreenEntry entry;
         private boolean isSelected;
@@ -160,16 +179,65 @@ public class ScreenSwitcherScreen extends BaseOwoScreen<FlowLayout> {
             sizing(Sizing.fixed(SLOT_AREA), Sizing.fixed(SLOT_AREA));
             cursorStyle(CursorStyle.HAND);
         }
-
+        //? if >1.19.4 {
         @Override
         public void draw(OwoUIDrawContext context, int mouseX, int mouseY,
                          float partialTicks, float delta) {
-            context.blitSprite(SLOT_SPRITE, x, y, SLOT_AREA, SLOT_AREA);
+            drawSlot(context, x, y, SLOT_AREA);
             context.renderItem(entry.icon(), x + ICON_OFFSET, y + ICON_OFFSET);
             if (isSelected) {
-                context.blitSprite(SELECTION_SPRITE, x, y, SLOT_AREA, SLOT_AREA);
+                drawSelection(context, x, y, SLOT_AREA);
             }
         }
+
+        private void drawSlot(OwoUIDrawContext context, int i, int j, int k) {
+            //? if <= 1.20.1 {
+            /*context.blit(SLOT_LOCATION, i, j, 0.0F, 75.0F, k, k, 128, 128);
+            *///?} else if <1.21.4 {
+            context.blitSprite(SLOT_SPRITE, i, j,  k, k);
+            //?} else if <1.21.6 {
+            /*context.blitSprite(RenderType::guiTextured,SLOT_SPRITE, i, j,  k, k);
+            *///?} else {
+            /*context.blitSprite(RenderPipelines.GUI_TEXTURED, SLOT_SPRITE, i, j,  k, k);
+            *///?}
+        }
+        private void drawSelection(OwoUIDrawContext context, int i, int j, int k) {
+            //? if <= 1.20.1 {
+            /*context.blit(SLOT_LOCATION, i, j, 26.0F, 75.0F, k, k, 128, 128);
+            *///?} else if <1.21.4 {
+            context.blitSprite(SELECTION_SPRITE, i, j,  k, k);
+            //?} else if <1.21.6 {
+            /*context.blitSprite(RenderType::guiTextured,SELECTION_SPRITE, i, j,  k, k);
+             *///?} else {
+            /*context.blitSprite(RenderPipelines.GUI_TEXTURED, SELECTION_SPRITE, i, j,  k, k);
+            *///?}
+        }
+        //?} else {
+
+        /*@Override
+        public void draw(PoseStack poseStack, int i, int i1, float v, float v1) {
+            drawSlot(poseStack, x, y, SLOT_AREA);
+            ScreenSwitcherScreen.this.itemRenderer.renderAndDecorateItem(poseStack, entry.icon(), x + ICON_OFFSET, y + ICON_OFFSET);
+            if (isSelected) {
+                drawSelection(poseStack, x, y, SLOT_AREA);
+            }
+        }
+        private void drawSlot(PoseStack poseStack, int i, int j, int k) {
+            RenderSystem.setShaderTexture(0, SLOT_LOCATION);
+            poseStack.pushPose();
+            poseStack.translate((float)i, (float)j, 0.0F);
+            blit(poseStack, 0, 0, 0.0F, 75.0F, 26, 26, 128, 128);
+            poseStack.popPose();
+        }
+
+        private void drawSelection(PoseStack poseStack, int i, int j, int k) {
+            RenderSystem.setShaderTexture(0, SLOT_LOCATION);
+            poseStack.pushPose();
+            poseStack.translate((float)i, (float)j, 0.0F);
+            blit(poseStack, 0, 0, 26.0F, 75.0F, 26, 26, 128, 128);
+            poseStack.popPose();
+        }
+        *///?}
         @Override
         public boolean isInBoundingBox(double x, double y) {
             return x >= (double)this.x() && x < (double)(this.x() + this.width());

@@ -25,6 +25,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -34,6 +36,7 @@ import static ml.mypals.carpetgui.CarpetGUI.MOD_ID;
 import static ml.mypals.carpetgui.CarpetGUIClient.*;
 
 public class RulesEditScreen extends BaseOwoScreen<FlowLayout> {
+    private static final Logger log = LoggerFactory.getLogger(RulesEditScreen.class);
     public boolean instantAffect;
     private FlowLayout saveDialog;
     private OverlayContainer<FlowLayout> dialogOverlay;
@@ -85,62 +88,54 @@ public class RulesEditScreen extends BaseOwoScreen<FlowLayout> {
 
     @Override
     protected @NotNull OwoUIAdapter<FlowLayout> createAdapter() {
-        return OwoUIAdapter.create(this, Containers::horizontalFlow);
+        return OwoUIAdapter.create(this, /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/::horizontalFlow);
     }
 
     @Override
     protected void build(FlowLayout root) {
         root.surface(Surface.blur(10, 10));
 
-        var leftPanel = Containers.verticalFlow(Sizing.fill(66), Sizing.content());
+        var leftPanel = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(66), Sizing.content());
 
-        var searchRow = Containers.horizontalFlow(Sizing.fill(100), Sizing.fixed(14));
+        var searchRow = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.fixed(14));
         searchRow.verticalAlignment(VerticalAlignment.CENTER);
         searchRow.padding(Insets.of(2, 2, 4, 4));
         searchRow.surface(Surface.flat(0x0AAAAAAA));
 
-        var searchIcon = Components.texture(
+        var searchIcon = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.texture(
                 ResourceLocation.fromNamespaceAndPath(MOD_ID, "ui/search.png"),
                 0, 0, 10, 11, 10, 11);
         searchIcon.sizing(Sizing.fixed(10), Sizing.fixed(11));
-        searchIcon.id("search-icon");
         searchRow.child(searchIcon);
 
-        searchBox = Components.textBox(Sizing.fill(100));
+        searchBox = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.textBox(Sizing.fill(100));
         searchBox.setMaxLength(100);
 
         searchBox.onChanged().subscribe(this::onSearch);
         searchBox.focusGained().subscribe(source -> this.onSearch(searchBox.getValue()));
-        searchBox.charTyped().subscribe((chr, scanCode) -> {
-            if (chr == '\r') {
-                this.setCurrentCategory(lastCategoryBeforeSearching);
-                return true;
-            }
-            return false;
-        });
         searchRow.child(searchBox);
         leftPanel.child(searchRow);
         leftPanel.allowOverflow();
-        rulesListLayout = Containers.verticalFlow(Sizing.fill(99), Sizing.content());
-        rulesScroll = Containers.verticalScroll(
-                Sizing.fill(), Sizing.fill(), rulesListLayout);
+        rulesListLayout = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(99), Sizing.content());
+        rulesScroll = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalScroll(
+                Sizing.fill(100), Sizing.fill(100), rulesListLayout);
         rulesScroll.surface(Surface.flat(0x19000000));
         rulesScroll.scrollbar(ScrollContainer.Scrollbar.flat(Color.WHITE));
         leftPanel.child(rulesScroll);
 
 
-        var rightPanel = Containers.verticalFlow(Sizing.fill(34), Sizing.fill(100));
+        var rightPanel = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(34), Sizing.fill(100));
         rightPanel.surface(Surface.flat(0x0F060606));
         rightPanel.padding(Insets.of(5));
 
-        currentCategoryLabel = Components.label(Component.nullToEmpty(currentCategory));
+        currentCategoryLabel = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(Component.nullToEmpty(currentCategory));
         currentCategoryLabel.color(Color.WHITE);
         currentCategoryLabel.margins(Insets.of(2, 6, 4, 0));
         rightPanel.child(currentCategoryLabel);
 
-        categoriesListLayout = Containers.verticalFlow(Sizing.fill(98), Sizing.content());
-        categoriesScroll = Containers.verticalScroll(
-                Sizing.fill(), Sizing.fill(), categoriesListLayout);
+        categoriesListLayout = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(98), Sizing.content());
+        categoriesScroll = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalScroll(
+                Sizing.fill(100), Sizing.fill(100), categoriesListLayout);
         categoriesScroll.scrollbar(ScrollContainer.Scrollbar.flat(Color.WHITE));
         categoriesScroll.surface(Surface.flat(0x19000000));
         categoriesScroll.scrollbarThiccness(10);
@@ -164,11 +159,19 @@ public class RulesEditScreen extends BaseOwoScreen<FlowLayout> {
         saveDialog = dialogResult.dialog();
         dialogOverlay = dialogResult.overlay();
 
+        //? if <1.21.9 {
         ScreenKeyboardEvents.afterKeyPress(this).register((screen, key, scancode, modifiers) -> {
             if ((modifiers & GLFW.GLFW_MOD_CONTROL) != 0 && key == GLFW.GLFW_KEY_S) {
                 ScreenUtils.showSaveGroupDialog(this.uiAdapter.rootComponent, dialogOverlay);
             }
         });
+        //?} else {
+        /*ScreenKeyboardEvents.afterKeyPress(this).register((screen, key) -> {
+            if ((key.input() & GLFW.GLFW_MOD_CONTROL) != 0 && key.key() == GLFW.GLFW_KEY_S) {
+                ScreenUtils.showSaveGroupDialog(this.uiAdapter.rootComponent, dialogOverlay);
+            }
+        });
+        *///?}
     }
 
     private void saveModifiedRulesAsGroup(String groupName) {
@@ -231,15 +234,26 @@ public class RulesEditScreen extends BaseOwoScreen<FlowLayout> {
     }
 
     public void setCurrentCategory(String category) {
-        double offset = ((ScrollContentAccessor) this.categoriesScroll).getScrollOffset();
-        double max = ((ScrollContentAccessor) this.categoriesScroll).getMaxScroll();
+        //? if >1.19.4 {
+        
+        double offset = ((ScrollContentAccessor) this.categoriesScroll).carpetGUI$getScrollOffset();
+        double max = ((ScrollContentAccessor) this.categoriesScroll).carpetGUI$getMaxScroll();
         lastCategoryScroll = max == 0 ? 0 : offset / max;
+        //?} else {
+        /*lastCategoryScroll = ((ScrollContentAccessor) this.categoriesScroll).carpetGUI$getScrollOffset();
+        *///?}
 
         boolean justRefresh = Objects.equals(category, currentCategory);
         if (justRefresh) {
-            double roffset = ((ScrollContentAccessor) this.rulesScroll).getScrollOffset();
-            double rmax = ((ScrollContentAccessor) this.rulesScroll).getMaxScroll();
+            //? if >1.19.4 {
+            
+            double roffset = ((ScrollContentAccessor) this.rulesScroll).carpetGUI$getScrollOffset();
+            double rmax = ((ScrollContentAccessor) this.rulesScroll).carpetGUI$getMaxScroll();
             lastRuleListScroll = rmax == 0 ? 0 : roffset / rmax;
+            //?} else {
+            /*lastCategoryScroll = ((ScrollContentAccessor) this.rulesScroll).carpetGUI$getScrollOffset();
+            *///?}
+
         } else {
             lastRuleListScroll = 0;
         }
@@ -264,10 +278,17 @@ public class RulesEditScreen extends BaseOwoScreen<FlowLayout> {
         Stream<RuleData> stream = getRuleDataStream();
 
         rebuildRulesList(stream, "");
+        //? if >1.19.4 {
         this.categoriesScroll.scrollTo(lastCategoryScroll);
         if (justRefresh) {
             this.rulesScroll.scrollTo(lastRuleListScroll);
         }
+        //?} else {
+        /*((ScrollContentAccessor) this.categoriesScroll).carpetGUI$setScrollOffset(lastCategoryScroll);
+        if (justRefresh) {
+            ((ScrollContentAccessor)this.rulesScroll).carpetGUI$setScrollOffset(lastRuleListScroll);
+        }
+        *///?}
     }
 
     private @NotNull Stream<RuleData> getRuleDataStream() {
@@ -306,17 +327,21 @@ public class RulesEditScreen extends BaseOwoScreen<FlowLayout> {
     private FlowLayout buildCategoryRow(String name) {
         boolean selected = Objects.equals(name, currentCategory);
 
-        var row = Containers.horizontalFlow(Sizing.fill(100), Sizing.fixed(22));
+        var row = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.fixed(22));
         row.surface(Surface.flat(selected ? 0x50060606 : 0x20060606));
         row.padding(Insets.of(4, 4, 6, 0));
         row.verticalAlignment(VerticalAlignment.CENTER);
         row.cursorStyle(CursorStyle.HAND);
 
-        var label = Components.label(DefaultCategory.getDisplayName(name));
+        var label = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(DefaultCategory.getDisplayName(name));
         label.color(Color.WHITE);
         row.child(label);
+        //? if <1.21.9 {
+        row.mouseDown().subscribe((x, y, btn) -> {
+        //?} else {
+        /*row.mouseDown().subscribe((mouseButtonEvent, btn) -> {
+        *///?}
 
-        row.mouseDown().subscribe((mx, my, btn) -> {
             setCurrentCategory(name);
             Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1));
             return true;

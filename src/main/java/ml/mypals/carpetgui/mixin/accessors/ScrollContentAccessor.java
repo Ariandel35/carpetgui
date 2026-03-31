@@ -7,8 +7,9 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin(ScrollContainer.class)
 public interface ScrollContentAccessor {
     @Accessor("scrollOffset")
-    double getScrollOffset();
-
+    double carpetGUI$getScrollOffset();
+    @Accessor("scrollOffset")
+    void carpetGUI$setScrollOffset(double scrollOffset);
     @Accessor("maxScroll")
-    int getMaxScroll();
+    int carpetGUI$getMaxScroll();
 }

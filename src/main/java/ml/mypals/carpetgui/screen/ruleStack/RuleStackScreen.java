@@ -1,5 +1,6 @@
 package ml.mypals.carpetgui.screen.ruleStack;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import io.wispforest.owo.ui.base.BaseOwoScreen;
 import io.wispforest.owo.ui.component.Components;
 import io.wispforest.owo.ui.component.LabelComponent;
@@ -22,6 +23,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.sounds.SoundEvents;
 import org.jetbrains.annotations.NotNull;
+import org.lwjgl.glfw.GLFW;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -66,7 +68,7 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
 
     @Override
     protected @NotNull OwoUIAdapter<FlowLayout> createAdapter() {
-        return OwoUIAdapter.create(this, Containers::horizontalFlow);
+        return OwoUIAdapter.create(this, /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/::horizontalFlow);
     }
 
     @Override
@@ -79,11 +81,11 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
     }
 
     private FlowLayout buildLeftPanel() {
-        var panel = Containers.verticalFlow(Sizing.fill(66), Sizing.content());
+        var panel = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(66), Sizing.content());
         panel.allowOverflow();
-        changesLayout = Containers.verticalFlow(Sizing.fill(99), Sizing.content());
+        changesLayout = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(99), Sizing.content());
         ScrollContainer<FlowLayout> scroll =
-                Containers.verticalScroll(Sizing.fill(100), Sizing.fill(), changesLayout);
+                /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalScroll(Sizing.fill(100), Sizing.fill(100), changesLayout);
         scroll.surface(Surface.flat(0x66000000));
         scroll.scrollbar(ScrollContainer.Scrollbar.flat(Color.WHITE));
         panel.child(scroll);
@@ -91,16 +93,16 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
     }
 
     private FlowLayout buildRightPanel() {
-        FlowLayout panel = Containers.verticalFlow(Sizing.fill(34), Sizing.fill(100));
+        FlowLayout panel = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(34), Sizing.fill(100));
         panel.surface(Surface.flat(0x66000000));
         panel.padding(Insets.of(2));
 
         FlowLayout prefabSection =
-                Containers.verticalFlow(Sizing.fill(100), Sizing.content());
+                /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(100), Sizing.content());
         prefabSection.margins(Insets.bottom(5));
         panel.child(prefabSection);
 
-        prefabNameLabel = Components.label(
+        prefabNameLabel = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(
                 Component.translatable("gui.rulestack.prefab", "…")
                         .withStyle(ChatFormatting.YELLOW));
         prefabNameLabel.color(Color.WHITE);
@@ -108,7 +110,7 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
         prefabSection.child(prefabNameLabel);
 
         FlowLayout prefabBtns =
-                Containers.horizontalFlow(Sizing.fill(100), Sizing.fill(5));
+                /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.fill(5));
         prefabBtns.gap(3);
         prefabBtns.child(btn(Component.translatable("gui.rulestack.btn.switch"),
                 Sizing.fill(20), Sizing.fill(100),
@@ -118,19 +120,19 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
                 () -> togglePrefabPanel(PrefabPanel.NEW_INPUT)));
         prefabSection.child(prefabBtns);
 
-        prefabDynamic = Containers.verticalFlow(Sizing.fill(100), Sizing.content());
+        prefabDynamic = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(100), Sizing.content());
         prefabDynamic.margins(Insets.top(3));
         prefabSection.child(prefabDynamic);
 
-        timelineLayout = Containers.verticalFlow(Sizing.fill(100), Sizing.content());
+        timelineLayout = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(100), Sizing.content());
         ScrollContainer<FlowLayout> timelineScroll =
-                Containers.verticalScroll(Sizing.fill(), Sizing.fill(70), timelineLayout);
+                /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalScroll(Sizing.fill(100), Sizing.fill(70), timelineLayout);
         timelineScroll.surface(Surface.flat(0x15000000));
         timelineScroll.scrollbar(ScrollContainer.Scrollbar.flat(Color.WHITE));
         panel.child(timelineScroll);
 
         String hint = Component.translatable("gui.rulestack.message_hint").getString();
-        pushMessageBox = Components.textBox(Sizing.fill(100));
+        pushMessageBox = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.textBox(Sizing.fill(100));
         pushMessageBox.setMaxLength(100);
         pushMessageBox.setSuggestion(hint);
         pushMessageBox.focusGained().subscribe(s -> pushMessageBox.setSuggestion(""));
@@ -141,7 +143,7 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
         pushMessageBox.margins(Insets.top(4));
         panel.child(pushMessageBox);
 
-        bottomButtonLayout = Containers.horizontalFlow(Sizing.fill(100), Sizing.fixed(16));
+        bottomButtonLayout = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.fixed(16));
         bottomButtonLayout.gap(4);
         bottomButtonLayout.margins(Insets.top(2));
         bottomButtonLayout.horizontalAlignment(HorizontalAlignment.LEFT);
@@ -189,18 +191,18 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
         var data = CarpetGUIClient.cachedRuleStackData;
         if (data == null) return;
 
-        var list = Containers.verticalFlow(Sizing.fill(100), Sizing.content());
+        var list = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(100), Sizing.content());
         list.surface(Surface.flat(0x30000000).and(Surface.outline(0x40FFFFFF)));
         list.padding(Insets.of(2));
 
         for (String name : data.allPrefabNames()) {
             boolean active = name.equals(data.activePrefabName());
-            FlowLayout row = Containers.horizontalFlow(Sizing.fill(100), Sizing.fixed(16));
+            FlowLayout row = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.fixed(16));
             row.padding(Insets.of(2, 2, 0, 0));
             row.verticalAlignment(VerticalAlignment.CENTER);
             row.surface(Surface.flat(active ? 0x40AAFFAA : 0x10FFFFFF));
 
-            LabelComponent lbl = Components.label(
+            LabelComponent lbl = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(
                     Component.literal((active ? "> " : "  ") + name));
             lbl.color(Color.WHITE);
             if (!data.pendingChanges().isEmpty())
@@ -208,7 +210,8 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
             row.child(lbl);
 
             row.mouseEnter().subscribe(() -> {
-                if (data.pendingChanges().isEmpty() || Screen.hasShiftDown())
+                if (data.pendingChanges().isEmpty()
+                        || InputConstants.isKeyDown(minecraft.getWindow()/*? if <1.21.9 {*/.getWindow()/*?}*/, GLFW.GLFW_KEY_LEFT_SHIFT))
                     row.surface(row.surface().and(Surface.outline(Color.WHITE.argb())));
             });
             row.mouseLeave().subscribe(() ->
@@ -216,8 +219,13 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
 
             if (!active) {
                 row.cursorStyle(CursorStyle.HAND);
-                row.mouseDown().subscribe((x, y, b) -> {
-                    if (data.pendingChanges().isEmpty() || Screen.hasShiftDown()) {
+                //? if <1.21.9 {
+                row.mouseDown().subscribe((x, y, btn) -> {
+                //?} else {
+                /*row.mouseDown().subscribe((mouseButtonEvent, btn) -> {
+                *///?}
+                    if (data.pendingChanges().isEmpty()
+                            ||  InputConstants.isKeyDown(minecraft.getWindow()/*? if <1.21.9 {*/.getWindow()/*?}*/, GLFW.GLFW_KEY_LEFT_SHIFT)) {
                         sendCmd("rulestack prefab switch " + name);
                         return true;
                     }
@@ -230,9 +238,9 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
     }
 
     private void fillNewPrefabInput() {
-        FlowLayout row = Containers.horizontalFlow(Sizing.fill(100), Sizing.fixed(21));
+        FlowLayout row = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.fixed(21));
         row.gap(3);
-        TextBoxComponent nameBox = Components.textBox(Sizing.fill(80));
+        TextBoxComponent nameBox = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.textBox(Sizing.fill(80));
         nameBox.setMaxLength(256);
         nameBox.setSuggestion("…");
         nameBox.focusGained().subscribe(s -> nameBox.setSuggestion(""));
@@ -242,7 +250,7 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
                 () -> {
                     String n = nameBox.getValue().trim();
                     if (!n.isEmpty()) {
-                        sendCmd("rulestack prefab create " + n + " " + (Screen.hasAltDown()?"true":"false"));
+                        sendCmd("rulestack prefab create " + n + " " + ( InputConstants.isKeyDown(minecraft.getWindow()/*? if <1.21.9 {*/.getWindow()/*?}*/, GLFW.GLFW_KEY_LEFT_ALT)?"true":"false"));
                         prefabDynamic.clearChildren();
                         prefabPanel = PrefabPanel.NONE;
                     }
@@ -258,7 +266,7 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
 
         RuleStackData data = CarpetGUIClient.cachedRuleStackData;
         if (data == null) {
-            timelineLayout.child(Components.label(
+            timelineLayout.child(/*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(
                     Component.translatable("gui.rulestack.loading")
                             .withStyle(ChatFormatting.GRAY)));
             return;
@@ -377,7 +385,7 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
             NodeStyle style,
             Runnable onClick
     ) {
-        FlowLayout entry = Containers.horizontalFlow(Sizing.fill(100), Sizing.fixed(36));
+        FlowLayout entry = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.fixed(36));
         entry.verticalAlignment(VerticalAlignment.CENTER);
         entry.padding(Insets.right(4));
 
@@ -392,17 +400,17 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
         }
         if (onClick != null) entry.cursorStyle(CursorStyle.HAND);
 
-        FlowLayout gutter = Containers.verticalFlow(Sizing.fixed(16), Sizing.fill(100));
+        FlowLayout gutter = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fixed(16), Sizing.fill(100));
         gutter.horizontalAlignment(HorizontalAlignment.CENTER);
 
-        FlowLayout topConnector = Containers.horizontalFlow(Sizing.fixed(2), Sizing.fixed(13));
+        FlowLayout topConnector = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fixed(2), Sizing.fixed(13));
         if (topLine) {
             int lineColor = isFuture ? 0x66AACCCC : 0x99AAAAAA;
             topConnector.surface(Surface.flat(lineColor));
         }
         gutter.child(topConnector);
 
-        FlowLayout dot = Containers.horizontalFlow(Sizing.fixed(8), Sizing.fixed(8));
+        FlowLayout dot = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fixed(8), Sizing.fixed(8));
         int dotColor;
         if (selected) {
             dotColor = isFuture ? 0xFF55FFFF : 0xFF66FF66;
@@ -423,7 +431,7 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
         gutter.child(dot);
 
         FlowLayout bottomConnector =
-                Containers.horizontalFlow(Sizing.fixed(2), Sizing.fill(100));
+                /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fixed(2), Sizing.fill(100));
         if (bottomLine) {
             int lineColor = isFuture ? 0x66AACCCC : 0x99AAAAAA;
             bottomConnector.surface(Surface.flat(lineColor));
@@ -432,11 +440,11 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
 
         entry.child(gutter);
 
-        FlowLayout content = Containers.verticalFlow(Sizing.fill(100), Sizing.fill(100));
+        FlowLayout content = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(100), Sizing.fill(100));
         content.verticalAlignment(VerticalAlignment.CENTER);
         content.padding(Insets.left(3));
 
-        LabelComponent lbl = Components.label(label);
+        LabelComponent lbl = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(label);
         if (style == NodeStyle.FUTURE && !selected) {
             lbl.color(Color.ofArgb(0xAA88AAAA));
         } else {
@@ -449,7 +457,7 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
                     + (timestamp != null
                     ? (changeCount > 0 ? "  " : "") + ts(timestamp)
                     : "");
-            content.child(Components.label(
+            content.child(/*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(
                     Component.literal(meta).withStyle(ChatFormatting.DARK_GREEN))
             );
         }
@@ -457,7 +465,13 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
         entry.child(content);
 
         if (onClick != null) {
-            entry.mouseDown().subscribe((x, y, b) -> {
+
+            //? if <1.21.9 {
+            entry.mouseDown().subscribe((x, y, btn) -> {
+            //?} else {
+            /*entry.mouseDown().subscribe((mouseButtonEvent, btn) -> {
+            *///?}
+
                 Minecraft.getInstance().getSoundManager()
                         .play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1));
                 onClick.run();
@@ -504,7 +518,7 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
         if (changesLayout == null) return;
         changesLayout.clearChildren();
         if (changes.isEmpty()) {
-            changesLayout.child(Components.label(
+            changesLayout.child(/*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(
                     Component.translatable("gui.rulestack.no_changes")
                             .withStyle(ChatFormatting.WHITE)));
             return;
@@ -513,7 +527,7 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
     }
 
     private FlowLayout changeCard(RuleStackSyncPayload.ChangeInfo c) {
-        var card = Containers.verticalFlow(Sizing.fill(100), Sizing.content());
+        var card = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(100), Sizing.content());
         card.surface(Surface.flat(0x99030303).and(Surface.outline(0x11FFFFFF)));
         card.padding(Insets.of(4, 4, 7, 7));
         card.margins(Insets.bottom(1));
@@ -523,20 +537,20 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
             managerId = managerId.split("\\$")[0];
         }
 
-        var nameRow = Containers.horizontalFlow(Sizing.fill(100), Sizing.content());
+        var nameRow = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.content());
         nameRow.gap(5);
         nameRow.verticalAlignment(VerticalAlignment.CENTER);
-        nameRow.child(Components.label(Component.literal(c.ruleName())));
-        nameRow.child(Components.label(
+        nameRow.child(/*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(Component.literal(c.ruleName())));
+        nameRow.child(/*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(
                 Component.literal("[" + managerId + "]").withStyle(ChatFormatting.BLUE)));
         card.child(nameRow);
 
-        var valRow = Containers.horizontalFlow(Sizing.fill(100), Sizing.content());
+        var valRow = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.content());
         valRow.gap(5);
         valRow.verticalAlignment(VerticalAlignment.CENTER);
         valRow.padding(Insets.top(3));
         valRow.child(valueLabel(c.prevValue(), c.prevIsDefault(), "§c"));
-        valRow.child(Components.label(Component.literal("->")));
+        valRow.child(/*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(Component.literal("->")));
         valRow.child(valueLabel(c.newValue(), c.newIsDefault(), "§a"));
         card.child(valRow);
 
@@ -547,7 +561,7 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
         MutableComponent comp = Component.literal(color + val);
         if (isDefault)
             comp.append(Component.translatable("commands.rulestack.change.default_marker"));
-        return Components.label(comp);
+        return /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(comp);
     }
 
     public void onSync() {

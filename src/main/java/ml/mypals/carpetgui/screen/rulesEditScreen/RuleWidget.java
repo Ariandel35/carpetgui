@@ -10,8 +10,11 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentContents;
 import net.minecraft.network.chat.MutableComponent;
+//? if >1.20.1 {
 import net.minecraft.network.chat.contents.PlainTextContents;
+//?}
 import net.minecraft.sounds.SoundEvents;
 
 import java.util.Map;
@@ -57,16 +60,16 @@ public class RuleWidget {
     }
 
     public FlowLayout buildComponent() {
-        var row = Containers.horizontalFlow(Sizing.fill(100), Sizing.fixed(25));
+        var row = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.fixed(25));
         row.surface(Surface.flat(0x99030303).and(Surface.outline(0x11FFFFFF)));
         row.padding(Insets.of(2, 2, 5, 5));
         row.verticalAlignment(VerticalAlignment.CENTER);
 
-        var leftCol = Containers.verticalFlow(Sizing.fill(50), Sizing.fill(100));
+        var leftCol = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(50), Sizing.fill(100));
         leftCol.verticalAlignment(VerticalAlignment.CENTER);
 
         String displayName = ruleData.localName;
-        var nameLabel = Components.label(highlight(displayName + " : ", query));
+        var nameLabel = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(highlight(displayName + " : ", query));
         nameLabel.color(Color.WHITE);
         nameLabel.tooltip(buildTooltip());
         leftCol.child(nameLabel);
@@ -74,13 +77,13 @@ public class RuleWidget {
         StringBuilder cats = new StringBuilder();
         for (String c : ruleData.categories.stream().map(Map.Entry::getValue).toList()) cats.append(c).append(" | ");
         if (cats.length() > 3) cats.setLength(cats.length() - 3);
-        var catsLabel = Components.label(highlight(cats.toString(), query).copy().withStyle(ChatFormatting.BLUE));
+        var catsLabel = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(highlight(cats.toString(), query).copy().withStyle(ChatFormatting.BLUE));
         catsLabel.color(Color.ofArgb(0xFFAAAAAA));
         leftCol.child(catsLabel);
 
         row.child(leftCol);
 
-        var rightCol = Containers.horizontalFlow(Sizing.fill(50), Sizing.fill(100));
+        var rightCol = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(50), Sizing.fill(100));
         rightCol.horizontalAlignment(HorizontalAlignment.RIGHT);
         rightCol.verticalAlignment(VerticalAlignment.TOP);
         rightCol.gap(4);
@@ -190,10 +193,15 @@ public class RuleWidget {
     }
 
     private FlowLayout buildBoolToggle() {
-        var wrapper = Containers.horizontalFlow(Sizing.fixed(30), Sizing.fixed(13));
+        var wrapper = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fixed(30), Sizing.fixed(13));
         wrapper.cursorStyle(CursorStyle.HAND);
         wrapper.child(makeTexture(currentBoolValue ? TRUE_TEX : FALSE_TEX, 30, 13));
+        //? if <1.21.9 {
         wrapper.mouseDown().subscribe((x, y, btn) -> {
+        //?} else {
+        /*wrapper.mouseDown().subscribe((mouseButtonEvent, btn) -> {
+        *///?}
+
             Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1));
             currentBoolValue = !currentBoolValue;
 
@@ -209,12 +217,12 @@ public class RuleWidget {
 
     private void buildTextInput(FlowLayout rightCol) {
 
-        var content = Containers.verticalFlow(Sizing.fill(100), Sizing.content());
+        var content = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(100), Sizing.content());
 
-        var box = Components.textBox(Sizing.fill(100));
+        var box = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.textBox(Sizing.fill(100));
         box.setMaxLength(114514);
 
-        var dropdown = Components.dropdown(Sizing.fill(100));
+        var dropdown = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.dropdown(Sizing.fill(100));
         dropdown.closeWhenNotHovered(false);
         box.setSuggestion(ruleData.value);
         for (String suggestion : ruleData.suggestions) {
@@ -251,14 +259,14 @@ public class RuleWidget {
             content.child(dropdown);
         }
 
-        var wrapper = Containers.verticalFlow(
+        var wrapper = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(
                 Sizing.fixed(70),
                 Sizing.fill(100)
         );
 
         wrapper.verticalAlignment(VerticalAlignment.CENTER);
 
-        var scroll = Containers.verticalScroll(
+        var scroll = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalScroll(
                 Sizing.fill(100),
                 Sizing.fill(100),
                 content
@@ -270,8 +278,11 @@ public class RuleWidget {
     }
 
     private Component buildTooltip() {
-        var tip = MutableComponent.create(
-                PlainTextContents.EMPTY);
+        //? if >1.20.1 {
+        var tip = MutableComponent.create(PlainTextContents.EMPTY);
+        //?} else {
+        /*var tip = MutableComponent.create(ComponentContents.EMPTY);
+        *///?}
         tip
                 .append(highlight(ruleData.localName.isEmpty() ? ruleData.name : ruleData.localName, query)
                         .copy().withStyle(ChatFormatting.WHITE)).append("\n")

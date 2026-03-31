@@ -9,7 +9,9 @@ import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-
+//? if >=1.21.11 {
+/*import net.minecraft.server.permissions.Permissions;
+*///?}
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -27,10 +29,9 @@ public final class RuleStackCommand {
 
     private RuleStackCommand() {}
 
-    public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
-                                CommandBuildContext ctx) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
-                literal("rulestack").requires(src -> src.hasPermission(2))
+                literal("rulestack").requires(src -> src/*? if >=1.21.11 {*//*.permissions()*//*?}*/.hasPermission(/*? if >=1.21.11 {*//*Permissions.COMMANDS_ADMIN*//*?} else {*/2/*?}*/))
                         .then(literal("push")
                                 .executes(c -> doPush(c, ""))
                                 .then(argument("message", StringArgumentType.greedyString())
@@ -86,8 +87,7 @@ public final class RuleStackCommand {
 
     private static boolean guard(CommandContext<CommandSourceStack> ctx) {
         if (mgr() == null) {
-            ctx.getSource().sendFailure(
-                    Component.translatable("commands.rulestack.not_init"));
+            failure(ctx, Component.translatable("commands.rulestack.not_init"));
             return true;
         }
         return false;
@@ -138,36 +138,21 @@ public final class RuleStackCommand {
         if (guard(ctx)) return 0;
 
         PrefabManager.PushResult result = mgr().push(msg);
-
         if (result == null) {
-            ctx.getSource().sendFailure(
-                    Component.translatable("commands.rulestack.push.no_changes"));
-            return 0;
+            return failure(ctx, Component.translatable("commands.rulestack.push.no_changes"));
         }
 
         RuleLayer layer = result.layer();
+        String translationKey = result.wasRedo() ? "commands.rulestack.push.redo" : "commands.rulestack.push.success";
 
-        if (result.wasRedo()) {
-            ctx.getSource().sendSuccess(() -> Component.translatable(
-                    "commands.rulestack.push.redo",
-                    String.valueOf(layer.getId()),
-                    layer.getMessage().isEmpty()
-                            ? Component.literal("")
-                            : Component.translatable("commands.rulestack.push.message_suffix",
-                            layer.getMessage()),
-                    String.valueOf(layer.getChanges().size())
-            ), true);
-        } else {
-            ctx.getSource().sendSuccess(() -> Component.translatable(
-                    "commands.rulestack.push.success",
-                    String.valueOf(layer.getId()),
-                    msg.isEmpty()
-                            ? Component.literal("")
-                            : Component.translatable("commands.rulestack.push.message_suffix", msg),
-                    String.valueOf(layer.getChanges().size())
-            ), true);
-        }
-        return 1;
+        Component response = Component.translatable(
+                translationKey,
+                String.valueOf(layer.getId()),
+                msg.isEmpty() ? Component.literal("") : Component.translatable("commands.rulestack.push.message_suffix", msg),
+                String.valueOf(layer.getChanges().size())
+        );
+
+        return success(ctx, response, true);
     }
 
     private static int doPop(CommandContext<CommandSourceStack> ctx) {
@@ -175,8 +160,7 @@ public final class RuleStackCommand {
 
         RuleLayer layer = mgr().pop();
         if (layer == null) {
-            ctx.getSource().sendFailure(
-                    Component.translatable("commands.rulestack.pop.empty"));
+            failure(ctx, Component.translatable("commands.rulestack.pop.empty"));
             return 0;
         }
 
@@ -195,7 +179,7 @@ public final class RuleStackCommand {
         for (RuleChange c : layer.getChanges()) {
             msg.append(Component.literal("\n  ")).append(renderChange(c));
         }
-        ctx.getSource().sendSuccess(() -> msg, true);
+        success(ctx, msg, true);
         return 1;
     }
 
@@ -270,7 +254,8 @@ public final class RuleStackCommand {
                 }
             }
         }
-        ctx.getSource().sendSuccess(() -> msg, false);
+
+        success(ctx, msg, true);
         return 1;
     }
 
@@ -278,7 +263,7 @@ public final class RuleStackCommand {
         if (guard(ctx)) return 0;
         RuleLayer layer = mgr().getActivePrefab().peek();
         if (layer == null) {
-            ctx.getSource().sendFailure(
+            failure(ctx,
                     Component.translatable("commands.rulestack.show.empty"));
             return 0;
         }
@@ -291,14 +276,14 @@ public final class RuleStackCommand {
         try {
             id = Integer.parseInt(idStr);
         } catch (NumberFormatException e) {
-            ctx.getSource().sendFailure(
+            failure(ctx,
                     Component.translatable("commands.rulestack.show.invalid_id", idStr));
             return 0;
         }
         Optional<RuleLayer> found = mgr().getActivePrefab().getLayers().stream()
                 .filter(l -> l.getId() == id).findFirst();
         if (found.isEmpty()) {
-            ctx.getSource().sendFailure(
+            failure(ctx,
                     Component.translatable("commands.rulestack.show.not_found",
                             String.valueOf(id)));
             return 0;
@@ -321,7 +306,8 @@ public final class RuleStackCommand {
         for (RuleChange c : layer.getChanges()) {
             msg.append(Component.literal("\n  ")).append(renderChange(c));
         }
-        ctx.getSource().sendSuccess(() -> msg, false);
+
+        success(ctx, msg, false);
         return 1;
     }
 
@@ -329,8 +315,7 @@ public final class RuleStackCommand {
         if (guard(ctx)) return 0;
         List<RuleChange> changes = mgr().getPendingChanges();
         if (changes.isEmpty()) {
-            ctx.getSource().sendSuccess(
-                    () -> Component.translatable("commands.rulestack.diff.no_changes"), false);
+            success(ctx, Component.translatable("commands.rulestack.diff.no_changes"), false);
             return 1;
         }
         MutableComponent msg = Component.translatable(
@@ -340,7 +325,7 @@ public final class RuleStackCommand {
         for (RuleChange c : changes) {
             msg.append(Component.literal("\n  ")).append(renderChange(c));
         }
-        ctx.getSource().sendSuccess(() -> msg, false);
+        success(ctx, msg, false);
         return 1;
     }
     private static int doPrefabList(CommandContext<CommandSourceStack> ctx) {
@@ -357,7 +342,7 @@ public final class RuleStackCommand {
                     String.valueOf(p.getSize())
             ));
         }
-        ctx.getSource().sendSuccess(() -> msg, false);
+        success(ctx, msg, false);
         return 1;
     }
 
@@ -365,15 +350,13 @@ public final class RuleStackCommand {
                                       String name, boolean fork) {
         if (guard(ctx)) return 0;
         if (mgr().hasPrefab(name)) {
-            ctx.getSource().sendFailure(
+            failure(ctx,
                     Component.translatable(
                             "commands.rulestack.prefab.create.exists", name));
             return 0;
         }
         mgr().createPrefab(name, !fork);
-        ctx.getSource().sendSuccess(
-                () -> Component.translatable(
-                        "commands.rulestack.prefab.create.success", name), true);
+        success(ctx, Component.translatable("commands.rulestack.prefab.create.success", name), false);
         return 1;
     }
 
@@ -381,20 +364,18 @@ public final class RuleStackCommand {
                                       String name) {
         if (guard(ctx)) return 0;
         if (!mgr().hasPrefab(name)) {
-            ctx.getSource().sendFailure(
+            failure(ctx,
                     Component.translatable(
                             "commands.rulestack.prefab.delete.not_found", name));
             return 0;
         }
         if (!mgr().deletePrefab(name)) {
-            ctx.getSource().sendFailure(
+            failure(ctx,
                     Component.translatable(
                             "commands.rulestack.prefab.delete.is_active"));
             return 0;
         }
-        ctx.getSource().sendSuccess(
-                () -> Component.translatable(
-                        "commands.rulestack.prefab.delete.success", name), true);
+        success(ctx, Component.translatable("commands.rulestack.prefab.delete.success", name), true);
         return 1;
     }
 
@@ -403,25 +384,46 @@ public final class RuleStackCommand {
         if (guard(ctx)) return 0;
         return switch (mgr().switchPrefab(name)) {
             case NOT_FOUND -> {
-                ctx.getSource().sendFailure(Component.translatable(
+                failure(ctx, Component.translatable(
                         "commands.rulestack.prefab.switch.not_found", name));
                 yield 0;
             }
             case ALREADY_ACTIVE -> {
-                ctx.getSource().sendFailure(Component.translatable(
+                failure(ctx, Component.translatable(
                         "commands.rulestack.prefab.switch.already_active", name));
                 yield 0;
             }
             case SUCCESS_DIRTY -> {
-                ctx.getSource().sendSuccess(() -> Component.translatable(
-                        "commands.rulestack.prefab.switch.success_dirty", name), true);
+                success(ctx, Component.translatable("commands.rulestack.prefab.switch.success_dirty", name), true);
                 yield 1;
             }
             default -> {
-                ctx.getSource().sendSuccess(() -> Component.translatable(
+                success(ctx, Component.translatable(
                         "commands.rulestack.prefab.switch.success", name), true);
                 yield 1;
             }
         };
+    }
+
+
+    private static int send(CommandContext<CommandSourceStack> ctx, Component component, boolean success, boolean broadcast) {
+        if (success) {
+            //? if >1.19.4 {
+            ctx.getSource().sendSuccess(() -> component, broadcast);
+            //?} else {
+            /*ctx.getSource().sendSuccess(component, broadcast);
+            *///?}
+        } else {
+            ctx.getSource().sendFailure(component);
+        }
+        return success ? 1 : 0;
+    }
+
+    private static int success(CommandContext<CommandSourceStack> ctx, Component component, boolean broadcast) {
+        return send(ctx, component, true, broadcast);
+    }
+
+    private static int failure(CommandContext<CommandSourceStack> ctx, Component component) {
+        return send(ctx, component, false, false);
     }
 }

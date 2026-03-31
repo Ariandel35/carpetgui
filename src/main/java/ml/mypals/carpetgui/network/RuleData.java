@@ -22,11 +22,10 @@ package ml.mypals.carpetgui.network;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 import java.util.Map;
-//#endif
+
 
 public class RuleData {
     public String manager;
@@ -66,9 +65,6 @@ public class RuleData {
         this.suggestions = suggestions;
         this.categories = categories;
     }
-
-    public static final StreamCodec<FriendlyByteBuf, RuleData> CODEC = StreamCodec.ofMember(RuleData::write, RuleData::new);
-
 
     public void write(FriendlyByteBuf buf) {
         buf.writeUtf(this.manager);

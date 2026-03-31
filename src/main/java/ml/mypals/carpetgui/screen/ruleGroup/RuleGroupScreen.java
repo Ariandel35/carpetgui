@@ -41,7 +41,7 @@ public class RuleGroupScreen extends BaseOwoScreen<FlowLayout> {
 
     @Override
     protected @NotNull OwoUIAdapter<FlowLayout> createAdapter() {
-        return OwoUIAdapter.create(this, Containers::verticalFlow);
+        return OwoUIAdapter.create(this, /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/::verticalFlow);
     }
 
     @Override
@@ -51,9 +51,9 @@ public class RuleGroupScreen extends BaseOwoScreen<FlowLayout> {
 
         List<RuleGroup> groups = RuleGroupLoader.loadAll();
 
-        FlowLayout main = Containers.horizontalFlow(Sizing.fill(100), Sizing.fill(100));
+        FlowLayout main = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.fill(100));
 
-        this.leftContent = Containers.verticalFlow(Sizing.fill(100), Sizing.content());
+        this.leftContent = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(100), Sizing.content());
         this.leftContent.gap(2);
 
         if(!groups.isEmpty()){
@@ -66,7 +66,7 @@ public class RuleGroupScreen extends BaseOwoScreen<FlowLayout> {
             }
         }
 
-        var rulesScroll = Containers.verticalScroll(
+        var rulesScroll = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalScroll(
                 Sizing.fill(100),
                 Sizing.fill(90),
                 this.leftContent
@@ -75,20 +75,20 @@ public class RuleGroupScreen extends BaseOwoScreen<FlowLayout> {
 
         FlowLayout bottomBar = buildBottomBar();
 
-        FlowLayout leftPanel = Containers.verticalFlow(Sizing.fill(80), Sizing.fill(100));
+        FlowLayout leftPanel = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(80), Sizing.fill(100));
         leftPanel.child(rulesScroll.sizing(Sizing.fill(100), Sizing.fill(90)));
         leftPanel.child(bottomBar.positioning(Positioning.relative(0, 99))
                 .sizing(Sizing.fill(100), Sizing.fill(6)));
         leftPanel.surface(Surface.flat(0x77000000));
 
-        this.rightContent = Containers.verticalFlow(Sizing.fill(90), Sizing.content());
+        this.rightContent = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(90), Sizing.content());
         rightContent.gap(2);
 
         for (RuleGroup group : groups) {
             rightContent.child(buildGroupEntry(group));
         }
 
-        var rightScroll = Containers.verticalScroll(
+        var rightScroll = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalScroll(
                 Sizing.fill(20),
                 Sizing.fill(99),
                 rightContent
@@ -113,7 +113,7 @@ public class RuleGroupScreen extends BaseOwoScreen<FlowLayout> {
         this.rebuildRightPanel();
     }
     private FlowLayout buildBottomBar() {
-        FlowLayout bar = Containers.horizontalFlow(Sizing.fill(100), Sizing.fill(100));
+        FlowLayout bar = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.fill(100));
 
         bar.surface(Surface.flat(0x30000000).and(Surface.outline(0x60000000)));
         bar.verticalAlignment(VerticalAlignment.CENTER);
@@ -201,7 +201,7 @@ public class RuleGroupScreen extends BaseOwoScreen<FlowLayout> {
     }
 
     private FlowLayout buildGroupEntry(RuleGroup group) {
-        FlowLayout row = Containers.horizontalFlow(Sizing.fill(100), Sizing.fixed(20));
+        FlowLayout row = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.fixed(20));
         boolean selected = currentGroup.name().equals(group.name());
         row.surface(Surface.flat(selected ? 0x50060606 : 0x20060606));
         row.verticalAlignment(VerticalAlignment.CENTER);
@@ -209,14 +209,18 @@ public class RuleGroupScreen extends BaseOwoScreen<FlowLayout> {
         row.cursorStyle(CursorStyle.HAND);
 
         String displayName = truncateWithEllipsis(group.name(), Minecraft.getInstance().font, 150);
-        var nameLabel = Components.label(Component.literal(displayName))
+        var nameLabel = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(Component.literal(displayName))
                 .color(Color.WHITE)
                 .horizontalSizing(Sizing.fill(80));
 
         nameLabel.tooltip(Component.literal(group.name()));
         row.child(nameLabel);
 
-        row.mouseDown().subscribe((mx, my, btn) -> {
+        //? if <1.21.9 {
+        row.mouseDown().subscribe((x, y, btn) -> {
+         //?} else {
+        /*row.mouseDown().subscribe((mouseButtonEvent, btn) -> {
+        *///?}
             Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1));
             setGroup(group);
             rebuildRightPanel();
@@ -251,7 +255,7 @@ public class RuleGroupScreen extends BaseOwoScreen<FlowLayout> {
     }
 
     private FlowLayout buildRow(RuleCommand cmd, List<TextBoxComponent> valueBoxes) {
-        FlowLayout row = Containers.horizontalFlow(Sizing.fill(99), Sizing.fixed(10));
+        FlowLayout row = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(99), Sizing.fixed(10));
 
         row.surface(Surface.flat(0x20060606));
         row.verticalAlignment(VerticalAlignment.CENTER);
@@ -269,13 +273,13 @@ public class RuleGroupScreen extends BaseOwoScreen<FlowLayout> {
         TextBoxComponent box;
         if (cmd.prefix() != null) {
             row.child(
-                    Components.label(Component.literal(cmd.prefix()).withStyle(ChatFormatting.BLUE))
+                    /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(Component.literal(cmd.prefix()).withStyle(ChatFormatting.BLUE))
                             .horizontalSizing(Sizing.fill(12))
             );
 
             String displayName = truncateWithEllipsis(cmd.ruleName(), Minecraft.getInstance().font, 150);
 
-            var nameLabel = Components.label(Component.literal(displayName))
+            var nameLabel = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(Component.literal(displayName))
                     .color(cmd.locked() ? Color.ofArgb(0xFFFFD700) : Color.WHITE)
                     .horizontalSizing(Sizing.fill(50));
 
@@ -283,9 +287,9 @@ public class RuleGroupScreen extends BaseOwoScreen<FlowLayout> {
             nameLabel.tooltip(Component.literal(defaultHint + cmd.ruleName()));
             row.child(nameLabel);
 
-            box = Components.textBox(Sizing.fill(30));
+            box = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.textBox(Sizing.fill(30));
         } else {
-            box = Components.textBox(Sizing.fill(92));
+            box = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.textBox(Sizing.fill(92));
         }
         box.focusGained().subscribe((focusSource) -> Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1)));
         box.focusLost().subscribe(this::saveCurrent);

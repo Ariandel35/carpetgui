@@ -1,5 +1,5 @@
 plugins {
-    id("fabric-loom")
+    id("net.fabricmc.fabric-loom-remap")
 
     // `maven-publish`
     // id("me.modmuss50.mod-publish-plugin")
@@ -27,7 +27,7 @@ repositories {
     strictMaven("https://www.cursemaven.com", "CurseForge", "curse.maven")
     strictMaven("https://api.modrinth.com/maven", "Modrinth", "maven.modrinth")
     strictMaven("https://maven.wispforest.io/releases", "Wispforest", "io.wispforest", "io.wispforest.endec" )
-    strictMaven("https://jitpack.io", "Jitpack", "io.jitpack")
+    strictMaven("https://jitpack.io", "Jitpack", "io.jitpack", "com.github.kdl-org", "com.github.glisco03")
     strictMaven("https://masa.dy.fi/maven", "Carpet", "carpet")
 }
 
@@ -37,15 +37,20 @@ dependencies {
     mappings(loom.officialMojangMappings())
     modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
-    modImplementation("io.wispforest:owo-lib:${property("deps.owo_version")}")
 
-    include("io.wispforest:owo-sentinel:${property("deps.owo_version")}")
+    if(stonecutter.eval(stonecutter.current.version, "<=1.17.1") ){
+        modImplementation("com.github.glisco03:owo-lib:${property("deps.owo_version")}")
+    }else{
+        modImplementation("io.wispforest:owo-lib:${property("deps.owo_version")}")
+    }
+    //include("io.wispforest:owo-sentinel:${property("deps.owo_version")}")
+
     modImplementation("carpet:fabric-carpet:${property("deps.carpet_version")}")
 }
 
 loom {
     fabricModJsonPath = rootProject.file("src/main/resources/fabric.mod.json") // Useful for interface injection
-    accessWidenerPath = rootProject.file("src/main/resources/carpetgui.accesswidener")
+    //accessWidenerPath = rootProject.file("src/main/resources/carpetgui.accesswidener")
 
     decompilerOptions.named("vineflower") {
         options.put("mark-corresponding-synthetics", "1") // Adds names to lambdas - useful for mixins

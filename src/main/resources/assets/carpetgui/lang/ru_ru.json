@@ -1,6 +1,0 @@
-{
-  "gui.screen.configure": "Экран настройки правил Carpet",
-  "gui.screen.tooltip.defaultValue": "Значение по умолчанию",
-  "gui.screen.tooltip.suggestions": "Предложения значений",
-  "gui.screen.tooltip.currentValue": "Текущее значение"
-}

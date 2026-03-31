@@ -20,7 +20,7 @@ public record RuleValueSnapshot(String value, boolean isDefault) {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof RuleValueSnapshot(String value1, boolean aDefault))) return false;
-        return value.equals(value1) && isDefault == aDefault;
+        if (!(obj instanceof RuleValueSnapshot snapshot)) return false;
+        return value.equals(snapshot.value) && isDefault == snapshot.isDefault;
     }
 }
