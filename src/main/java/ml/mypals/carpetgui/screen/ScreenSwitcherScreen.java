@@ -1,9 +1,9 @@
 package ml.mypals.carpetgui.screen;
 
 import io.wispforest.owo.ui.base.BaseOwoScreen;
-import io.wispforest.owo.ui.component.UIComponents;
+import io.wispforest.owo.ui.component.Components;
 import io.wispforest.owo.ui.component.LabelComponent;
-import io.wispforest.owo.ui.container.UIContainers;
+import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.core.*;
 import ml.mypals.carpetgui.CarpetGUIClient;

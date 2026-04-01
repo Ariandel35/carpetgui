@@ -25,7 +25,7 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.lwjgl.glfw.GLFW;
@@ -40,8 +40,8 @@ import static ml.mypals.carpetgui.CarpetGUI.MOD_ID;
 public class CarpetGUIClient implements ClientModInitializer {
 
     public static final Logger LOGGER = LoggerFactory.getLogger("carpetgui");
-    public static final String VERSION = /*$ mod_version*/ "1.0.0";
-    public static final String MINECRAFT = /*$ minecraft*/ "1.21.11";
+    public static final String VERSION = /*$ mod_version*/ "1.1.0";
+    public static final String MINECRAFT = /*$ minecraft*/ "1.21.1";
 
     public static KeyMapping carpetRulesKeyBind;
     public static RuleStackData cachedRuleStackData;
@@ -90,10 +90,10 @@ public class CarpetGUIClient implements ClientModInitializer {
                 InputConstants.Type.KEYSYM,
                 GLFW.GLFW_KEY_F9,
                 //? if <1.21.9 {
-                /*"key.category.carpetgui.main"
-                *///?} else {
-                KeyMapping.Category.register(Identifier.fromNamespaceAndPath(MOD_ID,"main"))
-                //?}
+                "key.category.carpetgui.main"
+                //?} else {
+                /*KeyMapping.Category.register(ResourceLocation.fromNamespaceAndPath(MOD_ID,"main"))
+                *///?}
         ));
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (carpetRulesKeyBind.consumeClick()) {
