@@ -4,6 +4,7 @@ import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.core.*;
 import ml.mypals.carpetgui.CarpetGUIClient;
+import ml.mypals.carpetgui.network.client.CarpetGUIClientPacketHandler;
 import ml.mypals.carpetgui.network.client.RequestRuleStackPayload;
 import ml.mypals.carpetgui.screen.ruleGroup.RuleGroupScreen;
 import ml.mypals.carpetgui.screen.ruleStack.RuleStackScreen;
@@ -68,7 +69,7 @@ public class ScreenTabBar {
 
     private static void onTabClick(Tab tab) {
         switch (tab) {
-            case RULES  -> CarpetGUIClient.openRuleEditScreen(true);
+            case RULES  -> CarpetGUIClientPacketHandler.openRuleEditScreen(true);
             case STACK  -> {
                 Minecraft.getInstance().setScreen(new RuleStackScreen());
                 ClientPlayNetworking.send(new RequestRuleStackPayload());

@@ -11,7 +11,9 @@ import ml.mypals.carpetgui.screen.ruleStack.RuleStackData;
 import ml.mypals.carpetgui.screen.ruleStack.RuleStackScreen;
 import ml.mypals.carpetgui.screen.rulesEditScreen.RulesEditScreen;
 import ml.mypals.carpetgui.settings.CarpetGUIConfigManager;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 
 import java.util.*;
 
@@ -92,6 +94,106 @@ public class CarpetGUIClientPacketHandler {
             requesting = false;
 
             client.setScreen(new RulesEditScreen(!fromRuleGroupScreen));
+        });
+    }
+    public static void openRuleEditScreen(boolean instantAffect) {
+        Minecraft client = Minecraft.getInstance();
+        if (hasModOnServer) {
+            String lang = client.getLanguageManager().getSelected();
+            ClientPlayNetworking.send(new RequestRulesPayload(lang));
+            requesting = true;
+        } else {
+            openScreenFromCache(client, instantAffect);
+        }
+    }
+    private static void openScreenFromCache(Minecraft client, boolean instantAffect) {
+        String addr = getServerAddress(client);
+        if (addr == null) return;
+
+        String lang = client.getLanguageManager().getSelected();
+        Optional<RulesCacheManager.CacheResult> cacheOpt = RulesCacheManager.loadCache(lang);
+
+        cacheOpt.ifPresent(cache -> {
+            client.execute(() -> {
+                cachedRules.clear();
+                cachedRules.addAll(cache.rules());
+
+                cachedCategories.clear();
+                for (var entry : RulesEditScreen.DefaultCategory.values()) {
+                    if (!entry.equals(RulesEditScreen.DefaultCategory.SEARCHING)) {
+                        cachedCategories.add(entry.getName());
+                    }
+                }
+                cachedCategories.addAll(
+                        cache.rules().stream()
+                                .flatMap(r -> r.categories.stream())
+                                .distinct()
+                                .map(Map.Entry::getValue)
+                                .toList()
+                );
+
+                defaultRules.clear();
+                defaultRules.addAll(Arrays.stream(cache.defaults().split(";")).toList());
+
+                favoriteRules.clear();
+                favoriteRules.addAll(CarpetGUIConfigManager.readFavoriteRules());
+
+                if (rulesFromServer != null && !rulesFromServer.isEmpty()) {
+                    Map<String, RuleData> cachedMap = new HashMap<>();
+                    for (RuleData rule : cachedRules) {
+                        if (rule.name != null) {
+                            cachedMap.put(rule.name, rule);
+                        }
+                    }
+
+                    for (RuleData serverRule : rulesFromServer) {
+                        if (serverRule.name == null || serverRule.name.isEmpty()) {
+                            continue;
+                        }
+
+                        RuleData existing = cachedMap.get(serverRule.name);
+
+                        if (existing != null) {
+                            existing.value = serverRule.value;
+                            if (serverRule.manager != null) {
+                                existing.manager = serverRule.manager;
+                            }
+                        } else {
+                            RuleData newRule = new RuleData();
+                            newRule.manager = serverRule.manager;
+                            newRule.name = serverRule.name;
+                            newRule.value = serverRule.value;
+                            String unknown = Component.translatable("gui.tip.unknown_rule").getString();
+                            newRule.localName = serverRule.name;
+                            newRule.defaultValue = serverRule.value;
+                            newRule.description = unknown;
+                            newRule.localDescription = unknown;
+                            newRule.type = null;
+                            newRule.suggestions = serverRule.value.equals("true") || serverRule.value.equals("false") ? List.of("true", "false") : List.of("");
+                            newRule.categories = List.of(Map.entry("unkown", Component.translatable("gui.category.unknown").getString()));
+                            newRule.isGamerule = false;
+
+                            cachedRules.add(newRule);
+                            cachedMap.put(newRule.name, newRule);
+                        }
+                    }
+
+                    Iterator<RuleData> iterator = cachedRules.iterator();
+                    while (iterator.hasNext()) {
+                        RuleData cachedRule = iterator.next();
+                        if (cachedRule.name == null) continue;
+
+                        boolean existsOnServer = rulesFromServer.stream()
+                                .anyMatch(sr -> sr.name != null && sr.name.equals(cachedRule.name));
+
+                        if (!existsOnServer && !cachedRule.isGamerule) {
+                            iterator.remove();
+                            cachedMap.remove(cachedRule.name);
+                        }
+                    }
+                }
+                client.setScreen(new RulesEditScreen(instantAffect));
+            });
         });
     }
 }

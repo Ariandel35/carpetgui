@@ -7,6 +7,7 @@ import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.core.*;
 import ml.mypals.carpetgui.localChache.RulesCacheManager;
+import ml.mypals.carpetgui.network.client.CarpetGUIClientPacketHandler;
 import ml.mypals.carpetgui.screen.ScreenSwitcherScreen;
 import ml.mypals.carpetgui.screen.ScreenTabBar;
 import net.fabricmc.api.EnvType;
@@ -26,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static ml.mypals.carpetgui.CarpetGUIClient.cachedManagers;
-import static ml.mypals.carpetgui.CarpetGUIClient.openRuleEditScreen;
 import static ml.mypals.carpetgui.screen.ScreenUtils.*;
 
 @Environment(EnvType.CLIENT)
@@ -140,7 +140,7 @@ public class RuleGroupScreen extends BaseOwoScreen<FlowLayout> {
                 Sizing.content(), Sizing.fill(100),
                 () ->{
                     requestingRulesForNewGroup = true;
-                    openRuleEditScreen(false);
+                    CarpetGUIClientPacketHandler.openRuleEditScreen(false);
                 }
         );
         FlowLayout addCmd = btn(

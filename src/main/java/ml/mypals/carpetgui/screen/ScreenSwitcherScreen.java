@@ -7,6 +7,7 @@ import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.core.*;
 import ml.mypals.carpetgui.CarpetGUIClient;
+import ml.mypals.carpetgui.network.client.CarpetGUIClientPacketHandler;
 import ml.mypals.carpetgui.network.client.RequestRuleStackPayload;
 import ml.mypals.carpetgui.screen.ruleGroup.RuleGroupScreen;
 import ml.mypals.carpetgui.screen.ruleStack.RuleStackScreen;
@@ -27,8 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public class ScreenSwitcherScreen {
-    /** 统一入口，替代原先 new ScreenSwitcherScreen() 的所有调用处 */
     public static void open() {
-        CarpetGUIClient.openRuleEditScreen(true);
+        CarpetGUIClientPacketHandler.openRuleEditScreen(true);
     }
 }
