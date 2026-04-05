@@ -51,7 +51,10 @@ public class CarpetGUIClientPacketHandler {
 
             if (!payload.isPartial()) {
                 CarpetGUIClient.cachedCompleteRules.clear();
-                CarpetGUIClient.cachedCompleteRules.addAll(payload.rules());
+                for(RuleData ruleData: payload.rules()){
+                    CarpetGUIClient.cachedCompleteRules.put(ruleData.name, ruleData);
+                }
+
                 cachedCategories.clear();
                 for (var entry : RulesEditScreen.DefaultCategory.values()) {
                     if (!entry.equals(RulesEditScreen.DefaultCategory.SEARCHING)) {
@@ -61,7 +64,7 @@ public class CarpetGUIClientPacketHandler {
 
                 Set<String> categories = new LinkedHashSet<>();
 
-                ListIterator<RuleData> it = cachedCompleteRules.listIterator();
+                ListIterator<RuleData> it = cachedCompleteRules.values().stream().toList().listIterator();
                 while (it.hasNext()) {
                     RuleData data = it.next();
 
@@ -88,7 +91,7 @@ public class CarpetGUIClientPacketHandler {
                 String lang = client.getLanguageManager().getSelected();
 
                 new Thread(() -> {
-                    RulesCacheManager.saveCache(cachedCompleteRules, payload.defaults(), lang);
+                    RulesCacheManager.saveCache(cachedCompleteRules.values().stream().toList(), payload.defaults(), lang);
                     cachedManagers = RulesCacheManager.loadKnownManagers();
                 }, "carpetgui-cache-save").start();
 
@@ -160,10 +163,12 @@ public class CarpetGUIClientPacketHandler {
                     for (RulesCacheManager.CachedRuleEntry entry : mergedMap.values()) {
                         RuleData rule = entry.toRuleData(lang, rawCache.categories);
                         rule.value = serverValues.getOrDefault(rule.name, rule.defaultValue);
-                        CarpetGUIClient.cachedCompleteRules.add(rule);
+                        CarpetGUIClient.cachedCompleteRules.put(rule.name, rule);
                     }
                 }
-                CarpetGUIClient.cachedCompleteRules.addAll(payload.rules());
+                for(RuleData ruleData: payload.rules()){
+                    CarpetGUIClient.cachedCompleteRules.put(ruleData.name, ruleData);
+                }
 
                 cachedCategories.clear();
 
@@ -174,7 +179,7 @@ public class CarpetGUIClientPacketHandler {
                 }
                 Set<String> categories = new HashSet<>();
 
-                ListIterator<RuleData> it = cachedCompleteRules.listIterator();
+                ListIterator<RuleData> it = cachedCompleteRules.values().stream().toList().listIterator();
                 while (it.hasNext()) {
                     RuleData data = it.next();
 
@@ -257,7 +262,9 @@ public class CarpetGUIClientPacketHandler {
         cacheOpt.ifPresent(cache -> {
             client.execute(() -> {
                 cachedCompleteRules.clear();
-                cachedCompleteRules.addAll(cache.rules());
+                for(RuleData ruleData: cache.rules()){
+                    CarpetGUIClient.cachedCompleteRules.put(ruleData.name, ruleData);
+                }
 
                 cachedCategories.clear();
                 for (var entry : RulesEditScreen.DefaultCategory.values()) {
@@ -281,7 +288,7 @@ public class CarpetGUIClientPacketHandler {
 
                 if (incompleteRulesFromServer != null && !incompleteRulesFromServer.isEmpty()) {
                     Map<String, RuleData> cachedMap = new HashMap<>();
-                    for (RuleData rule : cachedCompleteRules) {
+                    for (RuleData rule : cachedCompleteRules.values()) {
                         if (rule.name != null) {
                             cachedMap.put(rule.name, rule);
                         }
@@ -314,12 +321,12 @@ public class CarpetGUIClientPacketHandler {
                             newRule.categories = List.of(Map.entry("unkown", Component.translatable("gui.category.unknown").getString()));
                             newRule.isGamerule = false;
 
-                            cachedCompleteRules.add(newRule);
+                            cachedCompleteRules.put(newRule.name, newRule);
                             cachedMap.put(newRule.name, newRule);
                         }
                     }
 
-                    Iterator<RuleData> iterator = cachedCompleteRules.iterator();
+                    Iterator<RuleData> iterator = cachedCompleteRules.values().stream().toList().iterator();
                     while (iterator.hasNext()) {
                         RuleData cachedRule = iterator.next();
                         if (cachedRule.name == null) continue;

@@ -71,7 +71,7 @@ public class RuleWidget {
         String displayName = ruleData.localName;
         var nameLabel = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(highlight(displayName + " : ", query));
         nameLabel.color(Color.WHITE);
-        nameLabel.tooltip(buildTooltip());
+        nameLabel.tooltip(buildTooltip(ruleData, query));
         leftCol.child(nameLabel);
 
         StringBuilder cats = new StringBuilder();
@@ -156,41 +156,6 @@ public class RuleWidget {
         return row;
     }
 
-    private static Component highlight(String text, String query) {
-        if (query == null || query.isEmpty()) {
-            return Component.nullToEmpty(text);
-        }
-
-        var result = Component.empty().copy();
-        String lowerText = text.toLowerCase();
-        String lowerQuery = query.toLowerCase();
-        int start = 0;
-
-        while (true) {
-            int idx = lowerText.indexOf(lowerQuery, start);
-            if (idx == -1) {
-                if (start < text.length()) {
-                    result.append(Component.nullToEmpty(text.substring(start)));
-                }
-                break;
-            }
-            if (idx > start) {
-                result.append(Component.nullToEmpty(text.substring(start, idx)));
-            }
-            result.append(
-                    Component.nullToEmpty(text.substring(idx, idx + query.length()))
-                            .copy()
-                            .withStyle(style -> style
-                                    .withColor(net.minecraft.ChatFormatting.YELLOW)
-                                    .withBold(true)
-                            )
-            );
-
-            start = idx + query.length();
-        }
-
-        return result;
-    }
 
     private FlowLayout buildBoolToggle() {
         var wrapper = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fixed(30), Sizing.fixed(13));
@@ -275,33 +240,6 @@ public class RuleWidget {
         wrapper.child(scroll);
 
         rightCol.child(wrapper);
-    }
-
-    private Component buildTooltip() {
-        //? if >1.20.1 {
-        var tip = MutableComponent.create(PlainTextContents.EMPTY);
-        //?} else {
-        /*var tip = MutableComponent.create(ComponentContents.EMPTY);
-        *///?}
-        tip
-                .append(highlight(ruleData.localName.isEmpty() ? ruleData.name : ruleData.localName, query)
-                        .copy().withStyle(ChatFormatting.WHITE)).append("\n")
-                .append(highlight(ruleData.localDescription.isEmpty() ? ruleData.description : ruleData.localDescription, query)
-                        .copy().withStyle(ChatFormatting.GRAY)).append("\n")
-                .append(Component.translatable("gui.screen.tooltip.defaultValue").withStyle(ChatFormatting.DARK_GREEN))
-                .append(": " + ruleData.defaultValue).append("\n")
-                .append(Component.translatable("gui.screen.tooltip.currentValue").withStyle(ChatFormatting.DARK_GREEN))
-                .append(": " + ruleData.value).append("\n")
-                .append(Component.translatable("gui.screen.tooltip.suggestions").withStyle(ChatFormatting.BLUE)).append(":");
-        tip.append(" [");
-        for (int i = 0; i < ruleData.suggestions.size(); i++) {
-            tip.append(Component.literal(
-                    ruleData.suggestions.get(i) +
-                            (i + 1 < ruleData.suggestions.size() ? ", " : "")
-            ).withStyle(ChatFormatting.GRAY));
-        }
-        tip.append("]");
-        return tip;
     }
 
     private void sendCommand(String cmd) {

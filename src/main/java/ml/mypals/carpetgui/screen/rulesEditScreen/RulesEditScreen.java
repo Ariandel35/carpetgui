@@ -116,7 +116,7 @@ public class RulesEditScreen extends BaseOwoScreen<FlowLayout> {
         leftPanel.padding(Insets.of(5));
 
 
-        var searchRow = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.fixed(14));
+        var searchRow = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.fill(10));
         searchRow.verticalAlignment(VerticalAlignment.CENTER);
         searchRow.padding(Insets.of(2, 2, 4, 4));
         searchRow.surface(Surface.flat(0x0AAAAAAA));
@@ -136,7 +136,7 @@ public class RulesEditScreen extends BaseOwoScreen<FlowLayout> {
         leftPanel.child(searchRow);
         rulesListLayout = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalFlow(Sizing.fill(99), Sizing.content());
         rulesScroll = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.verticalScroll(
-                Sizing.fill(100), Sizing.fill(100), rulesListLayout);
+                Sizing.fill(100), Sizing.fill(90), rulesListLayout);
         rulesScroll.scrollbar(ScrollContainer.Scrollbar.flat(Color.WHITE));
         leftPanel.child(rulesScroll);
 
@@ -190,7 +190,7 @@ public class RulesEditScreen extends BaseOwoScreen<FlowLayout> {
     }
 
     private void saveModifiedRulesAsGroup(String groupName) {
-        List<RuleData> modifiedRules = cachedCompleteRules.stream()
+        List<RuleData> modifiedRules = cachedCompleteRules.values().stream()
                 .filter(r -> !Objects.equals(r.defaultValue, r.value) || defaultRules.contains(r.name))
                 .toList();
 
@@ -225,7 +225,7 @@ public class RulesEditScreen extends BaseOwoScreen<FlowLayout> {
             setCurrentCategory(DefaultCategory.SEARCHING.getName());
 
             rebuildRulesList(
-                    cachedCompleteRules.stream().filter(r -> {
+                    cachedCompleteRules.values().stream().filter(r -> {
                         List<String> parts = new ArrayList<>();
                         parts.add(r.name);
                         parts.add(r.localName);
@@ -309,24 +309,24 @@ public class RulesEditScreen extends BaseOwoScreen<FlowLayout> {
     private @NotNull Stream<RuleData> getRuleDataStream() {
         Stream<RuleData> stream;
         if (Objects.equals(currentCategory, DefaultCategory.DEFAULT.getName())) {
-            stream = cachedCompleteRules.stream().filter(r -> {
+            stream = cachedCompleteRules.values().stream().filter(r -> {
                 String org = r.name;
                 return defaultRules.contains(org);
             });
         } else if (Objects.equals(currentCategory, DefaultCategory.FAVORITE.getName())) {
-            stream = cachedCompleteRules.stream().filter(r -> {
+            stream = cachedCompleteRules.values().stream().filter(r -> {
                 String org = r.name;
 
                 return favoriteRules.contains(org);
             });
         } else if (Objects.equals(currentCategory, DefaultCategory.MODIFIED.getName())) {
-            stream = cachedCompleteRules.stream().filter(r -> !r.defaultValue.equals(r.value));
+            stream = cachedCompleteRules.values().stream().filter(r -> !r.defaultValue.equals(r.value));
         } else if (Objects.equals(currentCategory, DefaultCategory.GAMERULES.getName())) {
-            stream = cachedCompleteRules.stream().filter(r -> r.categories.getFirst().getKey().equals("gamerule"));
+            stream = cachedCompleteRules.values().stream().filter(r -> r.categories.getFirst().getKey().equals("gamerule"));
         } else if (Objects.equals(currentCategory, DefaultCategory.ALL.getName())) {
-            stream = cachedCompleteRules.stream().filter(r -> !r.categories.getFirst().getKey().equals("gamerule"));
+            stream = cachedCompleteRules.values().stream().filter(r -> !r.categories.getFirst().getKey().equals("gamerule"));
         } else {
-            stream = cachedCompleteRules.stream().filter(r -> r.categories.stream().anyMatch(e -> Objects.equals(e.getValue(), currentCategory)));
+            stream = cachedCompleteRules.values().stream().filter(r -> r.categories.stream().anyMatch(e -> Objects.equals(e.getValue(), currentCategory)));
         }
         return stream;
     }

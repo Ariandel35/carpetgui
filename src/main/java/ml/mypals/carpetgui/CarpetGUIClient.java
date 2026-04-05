@@ -35,7 +35,7 @@ public class CarpetGUIClient implements ClientModInitializer {
 
     public static KeyMapping carpetRulesKeyBind;
     public static RuleStackData cachedRuleStackData;
-    public static List<RuleData> cachedCompleteRules = new ArrayList<>();
+    public static Map<String, RuleData> cachedCompleteRules = new HashMap<>();
     public static List<RuleData> incompleteRulesFromServer = new ArrayList<>();
     public static List<String> cachedCategories = new ArrayList<>();
     public static List<String> cachedManagers = List.of("carpet");

@@ -7,6 +7,7 @@ import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.core.*;
 import ml.mypals.carpetgui.localChache.RulesCacheManager;
+import ml.mypals.carpetgui.network.RuleData;
 import ml.mypals.carpetgui.network.client.CarpetGUIClientPacketHandler;
 import ml.mypals.carpetgui.screen.ScreenSwitcherScreen;
 import ml.mypals.carpetgui.screen.ScreenTabBar;
@@ -26,6 +27,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import static ml.mypals.carpetgui.CarpetGUIClient.cachedCompleteRules;
 import static ml.mypals.carpetgui.CarpetGUIClient.cachedManagers;
 import static ml.mypals.carpetgui.screen.ScreenUtils.*;
 
@@ -287,14 +289,20 @@ public class RuleGroupScreen extends BaseOwoScreen<FlowLayout> {
                             .horizontalSizing(Sizing.fill(12))
             );
 
-            String displayName = truncateWithEllipsis(cmd.ruleName(), Minecraft.getInstance().font, 150);
+            String translatedName = cmd.ruleName();
+            RuleData ruleData = cachedCompleteRules.get(cmd.ruleName());
+            if(ruleData != null){
+                translatedName = ruleData.localName;
+            }
+
+            String displayName = truncateWithEllipsis(translatedName, Minecraft.getInstance().font, 150);
 
             var nameLabel = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(Component.literal(displayName))
                     .color(cmd.locked() ? Color.ofArgb(0xFFFFD700) : Color.WHITE)
                     .horizontalSizing(Sizing.fill(50));
 
             String defaultHint = cmd.locked() ? Component.translatable("gui.tip.default").getString() : "";
-            nameLabel.tooltip(Component.literal(defaultHint + cmd.ruleName()));
+            nameLabel.tooltip(Component.literal(defaultHint + translatedName));
             row.child(nameLabel);
 
             box = /*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.textBox(Sizing.fill(30));

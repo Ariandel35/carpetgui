@@ -10,6 +10,7 @@ import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.container.ScrollContainer;
 import io.wispforest.owo.ui.core.*;
 import ml.mypals.carpetgui.CarpetGUIClient;
+import ml.mypals.carpetgui.network.RuleData;
 import ml.mypals.carpetgui.network.client.RequestRuleStackPayload;
 import ml.mypals.carpetgui.network.server.RuleStackSyncPayload;
 import ml.mypals.carpetgui.screen.ScreenSwitcherScreen;
@@ -32,8 +33,9 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static ml.mypals.carpetgui.screen.ScreenUtils.btn;
-import static ml.mypals.carpetgui.screen.ScreenUtils.makeMasterContainer;
+import static ml.mypals.carpetgui.CarpetGUIClient.cachedCompleteRules;
+import static ml.mypals.carpetgui.CarpetGUIClient.cachedRuleStackData;
+import static ml.mypals.carpetgui.screen.ScreenUtils.*;
 
 public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
 
@@ -543,13 +545,22 @@ public class RuleStackScreen extends BaseOwoScreen<FlowLayout> {
             managerId = managerId.split("\\$")[0];
         }
 
-        var nameRow = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.content());
-        nameRow.gap(5);
-        nameRow.verticalAlignment(VerticalAlignment.CENTER);
-        nameRow.child(/*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(Component.literal(c.ruleName())));
-        nameRow.child(/*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(
+        var nameLabel = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.content());
+        nameLabel.gap(5);
+        nameLabel.verticalAlignment(VerticalAlignment.CENTER);
+
+        String translatedName = c.ruleName();
+        if(cachedCompleteRules.containsKey(c.ruleName())){
+            RuleData ruleData = cachedCompleteRules.get(c.ruleName());
+            translatedName = ruleData.localName;
+            nameLabel.tooltip(buildTooltip(ruleData, ""));;
+        }
+
+
+        nameLabel.child(/*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(Component.literal(translatedName)));
+        nameLabel.child(/*? if <1.21.11 {*/Components/*?} else {*//*UIComponents*//*?}*/.label(
                 Component.literal("[" + managerId + "]").withStyle(ChatFormatting.BLUE)));
-        card.child(nameRow);
+        card.child(nameLabel);
 
         var valRow = /*? if <1.21.11 {*/Containers/*?} else {*//*UIContainers*//*?}*/.horizontalFlow(Sizing.fill(100), Sizing.content());
         valRow.gap(5);
