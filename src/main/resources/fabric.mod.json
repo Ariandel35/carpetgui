@@ -8,9 +8,9 @@
   "license": "MIT",
   "environment": "*",
   "entrypoints": {
-    "main": ["yiwen.carpetgui.CarpetGUIRewrite"],
-    "client": ["yiwen.carpetgui.CarpetGUIRewriteClient"],
-    "carpet": ["yiwen.carpetgui.CarpetGUIRewrite"]
+    "main": ["Ariandel.carpetgui.CarpetGUIRewrite"],
+    "client": ["Ariandel.carpetgui.CarpetGUIRewriteClient"],
+    "carpet": ["Ariandel.carpetgui.CarpetGUIRewrite"]
   },
   "mixins": [
     "carpetgui-rewrite.mixins.json"

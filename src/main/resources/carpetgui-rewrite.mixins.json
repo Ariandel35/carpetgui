@@ -1,7 +1,7 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "yiwen.carpetgui.mixin",
+  "package": "Ariandel.carpetgui.mixin",
   "compatibilityLevel": "${java}",
   "mixins": [
     "GamerulesMixin"
