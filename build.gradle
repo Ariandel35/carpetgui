@@ -1,0 +1,55 @@
+plugins {
+    id("net.fabricmc.fabric-loom") version "1.16-SNAPSHOT"
+    id("maven-publish")
+}
+
+version = "${mod_version}+mc${minecraft_version}"
+group = mod_group
+
+repositories {
+    maven {
+        url = uri("https://masa.dy.fi/maven")
+        name = "Carpet"
+    }
+}
+
+dependencies {
+    minecraft("com.mojang:minecraft:${minecraft_version}")
+    implementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
+    implementation("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")
+
+    implementation("carpet:fabric-carpet:${carpet_version}")
+}
+
+loom {
+    productionNamespace = "official"
+    runConfigs.all {
+        ideConfigGenerated(true)
+        runDir = "run"
+    }
+}
+
+java {
+    withSourcesJar()
+    targetCompatibility = JavaVersion.VERSION_25
+    sourceCompatibility = JavaVersion.VERSION_25
+}
+
+tasks.processResources {
+    inputs.property("id", mod_id)
+    inputs.property("name", mod_name)
+    inputs.property("version", mod_version)
+    inputs.property("minecraft", minecraft_version)
+
+    filesMatching("fabric.mod.json") {
+        expand(
+            "id": mod_id,
+            "name": mod_name,
+            "version": mod_version,
+            "minecraft_dep": ">=26.1"
+        )
+    }
+    filesMatching("*.mixins.json") {
+        expand("java": "JAVA_25")
+    }
+}

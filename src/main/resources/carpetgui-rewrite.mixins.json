@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "yiwen.carpetgui.mixin",
+  "compatibilityLevel": "${java}",
+  "mixins": [
+    "GamerulesMixin"
+  ],
+  "client": [
+    "CarpetClientNetworkMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

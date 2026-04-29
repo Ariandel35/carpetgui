@@ -1,0 +1,16 @@
+{
+  "key.carpetgui.open": "Open Carpet Rules GUI",
+  "category.carpetgui.main": "CarpetGUI",
+
+  "gui.carpetgui.search_hint": "Search rules...",
+  "gui.carpetgui.no_rules": "No rules found",
+  "gui.carpetgui.reset_defaults": "Reset Defaults",
+
+  "gui.category.all": "All",
+  "gui.category.favorites": "Favorites",
+  "gui.category.gamerules": "Gamerules",
+  "gui.category.unknown": "Unknown",
+
+  "gui.carpetgui.rule_group": "Rule Groups",
+  "gui.carpetgui.rule_stack": "Rule History"
+}

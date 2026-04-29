@@ -1,0 +1,16 @@
+{
+  "key.carpetgui.open": "打开Carpet规则界面",
+  "category.carpetgui.main": "CarpetGUI",
+
+  "gui.carpetgui.search_hint": "搜索规则...",
+  "gui.carpetgui.no_rules": "未找到规则",
+  "gui.carpetgui.reset_defaults": "重置默认值",
+
+  "gui.category.all": "全部",
+  "gui.category.favorites": "收藏",
+  "gui.category.gamerules": "游戏规则",
+  "gui.category.unknown": "未知",
+
+  "gui.carpetgui.rule_group": "规则组",
+  "gui.carpetgui.rule_stack": "规则历史"
+}

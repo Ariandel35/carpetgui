@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "${id}",
+  "version": "${version}",
+  "name": "${name}",
+  "description": "Vanilla-based Carpet rule GUI - no external UI dependencies",
+  "authors": ["Yiwen"],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["yiwen.carpetgui.CarpetGUIRewrite"],
+    "client": ["yiwen.carpetgui.CarpetGUIRewriteClient"],
+    "carpet": ["yiwen.carpetgui.CarpetGUIRewrite"]
+  },
+  "mixins": [
+    "carpetgui-rewrite.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_dep}",
+    "carpet": "*"
+  }
+}
