@@ -20,7 +20,7 @@ import yiwen.carpetgui.network.client.RequestRulesPayload;
 import yiwen.carpetgui.network.client.RequestRuleStackPayload;
 import yiwen.carpetgui.network.server.*;
 import yiwen.carpetgui.screen.RuleListScreen;
-import yiwen.carpetgui.config.ConfigManager;
+import yiwen.carpetgui.data.ConfigManager;
 
 import java.util.*;
 

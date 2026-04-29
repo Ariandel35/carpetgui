@@ -24,3 +24,9 @@ logs/
 *.class
 *.jar
 !gradle/wrapper/gradle-wrapper.jar
+
+# Project
+.claude/
+
+# Fabric Loom
+remappedSrc/

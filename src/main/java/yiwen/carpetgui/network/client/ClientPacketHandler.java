@@ -2,8 +2,8 @@ package yiwen.carpetgui.network.client;
 
 import net.minecraft.client.Minecraft;
 import yiwen.carpetgui.CarpetGUIRewriteClient;
-import yiwen.carpetgui.cache.RulesCacheManager;
-import yiwen.carpetgui.config.ConfigManager;
+import yiwen.carpetgui.data.RulesCacheManager;
+import yiwen.carpetgui.data.ConfigManager;
 import yiwen.carpetgui.network.RuleData;
 import yiwen.carpetgui.network.server.RulesPacketPayload;
 import yiwen.carpetgui.network.server.RuleStackSyncPayload;

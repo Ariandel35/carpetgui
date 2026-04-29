@@ -1,4 +1,4 @@
-package yiwen.carpetgui.config;
+package yiwen.carpetgui.data;
 
 import com.google.gson.*;
 import net.fabricmc.loader.api.FabricLoader;

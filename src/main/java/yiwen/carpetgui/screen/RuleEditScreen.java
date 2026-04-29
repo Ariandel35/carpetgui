@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-import yiwen.carpetgui.config.ConfigManager;
+import yiwen.carpetgui.data.ConfigManager;
 import yiwen.carpetgui.network.RuleData;
 
 /**
