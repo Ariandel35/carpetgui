@@ -31,3 +31,4 @@ logs/
 
 # Fabric Loom
 remappedSrc/
+gradle_output.txt
