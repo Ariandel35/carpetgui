@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import Ariandel.carpetgui.network.RuleData;
-import Ariandel.carpetgui.network.PacketIDs;
 import Ariandel.carpetgui.network.client.RequestRulesPayload;
 import Ariandel.carpetgui.network.client.RequestRuleStackPayload;
 import Ariandel.carpetgui.network.server.*;

@@ -14,13 +14,12 @@ import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import Ariandel.carpetgui.data.FavoritesManager;
 import Ariandel.carpetgui.network.RuleData;
 import Ariandel.carpetgui.network.client.ClientPacketHandler;
 import Ariandel.carpetgui.network.client.RequestRulesPayload;
-import Ariandel.carpetgui.network.client.RequestRuleStackPayload;
 import Ariandel.carpetgui.network.server.*;
 import Ariandel.carpetgui.screen.RuleListScreen;
-import Ariandel.carpetgui.data.ConfigManager;
 
 import java.util.*;
 
@@ -34,12 +33,13 @@ public class CarpetGUIRewriteClient implements ClientModInitializer {
     public static Map<String, RuleData> cachedRules = new LinkedHashMap<>();
     public static List<String> cachedCategories = new ArrayList<>();
     public static List<String> defaultRules = new ArrayList<>();
-    public static List<String> favoriteRules = new ArrayList<>();
     public static List<RuleData> incompleteServerRules = new ArrayList<>();
+    public static Set<String> favoriteRules = new HashSet<>();
 
     @Override
     public void onInitializeClient() {
-        ConfigManager.init();
+
+        favoriteRules = FavoritesManager.load();
 
         openGuiKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
             "key.carpetgui.open",

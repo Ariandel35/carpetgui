@@ -3,7 +3,6 @@ package Ariandel.carpetgui.network.client;
 import net.minecraft.client.Minecraft;
 import Ariandel.carpetgui.CarpetGUIRewriteClient;
 import Ariandel.carpetgui.data.RulesCacheManager;
-import Ariandel.carpetgui.data.ConfigManager;
 import Ariandel.carpetgui.network.RuleData;
 import Ariandel.carpetgui.network.server.RulesPacketPayload;
 import Ariandel.carpetgui.network.server.RuleStackSyncPayload;
@@ -32,14 +31,12 @@ public class ClientPacketHandler {
                 for (String d : payload.defaults().split(";")) {
                     if (!d.isBlank()) CarpetGUIRewriteClient.defaultRules.add(d);
                 }
-                CarpetGUIRewriteClient.favoriteRules = ConfigManager.readFavorites();
             } else {
                 // Partial update
                 for (RuleData r : payload.rules()) {
                     CarpetGUIRewriteClient.cachedRules.put(r.name, r);
                 }
                 CarpetGUIRewriteClient.cachedCategories = collectCategories();
-                CarpetGUIRewriteClient.favoriteRules = ConfigManager.readFavorites();
             }
 
             CarpetGUIRewriteClient.requesting = false;
@@ -83,6 +80,7 @@ public class ClientPacketHandler {
     private static List<String> collectCategories() {
         Set<String> cats = new LinkedHashSet<>();
         cats.add("gui.category.all");
+        cats.add("gui.category.default");
         cats.add("gui.category.favorites");
         for (RuleData r : CarpetGUIRewriteClient.cachedRules.values()) {
             for (var entry : r.categories) {

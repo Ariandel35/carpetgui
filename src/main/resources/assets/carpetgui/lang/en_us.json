@@ -7,7 +7,9 @@
   "gui.carpetgui.reset_defaults": "Reset Defaults",
 
   "gui.category.all": "All",
+  "gui.category.default": "Default",
   "gui.category.favorites": "Favorites",
+  "gui.category.modified": "Modified",
   "gui.category.gamerules": "Gamerules",
   "gui.category.unknown": "Unknown",
 

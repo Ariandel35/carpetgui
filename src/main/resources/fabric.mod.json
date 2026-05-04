@@ -4,7 +4,7 @@
   "version": "${version}",
   "name": "${name}",
   "description": "Vanilla-based Carpet rule GUI - no external UI dependencies",
-  "authors": ["Yiwen"],
+  "authors": ["Ariandel"],
   "license": "MIT",
   "environment": "*",
   "entrypoints": {

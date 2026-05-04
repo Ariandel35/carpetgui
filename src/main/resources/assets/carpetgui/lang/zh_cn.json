@@ -7,7 +7,9 @@
   "gui.carpetgui.reset_defaults": "重置默认值",
 
   "gui.category.all": "全部",
+  "gui.category.default": "默认",
   "gui.category.favorites": "收藏",
+  "gui.category.modified": "已修改",
   "gui.category.gamerules": "游戏规则",
   "gui.category.unknown": "未知",
 

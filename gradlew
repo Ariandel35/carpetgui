@@ -33,20 +33,7 @@
 ##############################################################################
 
 # Attempt to set APP_HOME
-# Resolve links: $0 may be a link
-app_path=$0
-
-# Need this for daisy-chained symlinks.
-while
-    APP_HOME=${app_path%"${app_path##*/}"}	# leaves a trailing /; empty if no leading path
-    [ -n "$APP_HOME" ] &&	# do not test -x /nonexistent
-    APP_HOME=$(cd "$APP_HOME" 2>/dev/null && pwd -P) ||
-    exit
-do
-    app_path=$( ls -Pd "$app_path" 2>/dev/null | sed -e "s#.*/#/#;q" )
-done
-
-APP_HOME=$( cd "${APP_HOME:-.}" 2>/dev/null && pwd -P ) || exit
+APP_HOME=$(cd "$(dirname "$0")" 2>/dev/null && pwd -P) || exit
 
 APP_NAME="Gradle"
 APP_BASE_NAME=${0##*/}
@@ -62,7 +49,7 @@ if [ ! -f "$GRADLE_JAR" ]; then
 fi
 
 # Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
-DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
+DEFAULT_JVM_OPTS='-Xmx64m -Xms64m'
 
 # Use the maximum available, or set MAX_FD != -1 to use that value.
 MAX_FD=maximum
@@ -86,7 +73,7 @@ nonstop=false
 case "$( uname )" in                #(
   CYGWIN* )         cygwin=true  ;; #(
   Darwin* )         darwin=true  ;; #(
-  MSYS* / MINGW* )  msys=true    ;; #(
+  MSYS*|MINGW* )  msys=true    ;; #(
   NONSTOP* )        nonstop=true ;;
 esac
 
@@ -115,7 +102,7 @@ location of your Java installation."
 fi
 
 # Increase the maximum file descriptors if we can.
-if ! "$cygwin" &amp;&amp; ! "$darwin" &amp;&amp; ! "$nonstop" ; then
+if ! "$cygwin" && ! "$darwin" && ! "$nonstop" ; then
     case $MAX_FD in #(
       /*)
         MAX_FD=$( expr "$MAX_FD" : '.*\([0-9]*\)$' ) ;;
@@ -163,7 +150,7 @@ set -e
 
 # Translate "nice" to a "nop" for systems that don't support the command.
 # In all other cases, prepend the command.
-if ! command -v nice >/dev/null 2>&amp;1; then
+if ! command -v nice >/dev/null 2>&1; then
     nice=
 else
     nice='nice '
@@ -181,4 +168,4 @@ fi
 # Using the same CLASSPATH as wrapper script, for consistency.
 CLASSPATH=$GRADLE_JAR
 
-exec "${nice}${JAVACMD}" ${DEFAULT_JVM_OPTS} ${JAVA_OPTS} ${GRADLE_OPTS} -classpath "${CLASSPATH}" org.gradle.wrapper.GradleWrapperMain "$@"
+exec $nice"$JAVACMD" ${DEFAULT_JVM_OPTS} ${JAVA_OPTS} ${GRADLE_OPTS} -classpath "${CLASSPATH}" org.gradle.wrapper.GradleWrapperMain "$@"
