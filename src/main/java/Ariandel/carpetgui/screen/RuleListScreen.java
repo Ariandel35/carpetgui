@@ -222,6 +222,11 @@ public class RuleListScreen extends Screen {
             inlineEditBox.extractWidgetRenderState(g, mouseX, mouseY, delta);
         }
 
+        // Re-render search box on top of background fills
+        if (searchBox != null) {
+            searchBox.extractWidgetRenderState(g, mouseX, mouseY, delta);
+        }
+
         // Tooltip (only when no dropdown/edit active)
         if (hoveredRuleIndex >= 0 && hoveredRuleIndex < filteredRules.size()
                 && dropdownRuleIndex < 0 && editingRuleIndex < 0) {
@@ -591,6 +596,10 @@ public class RuleListScreen extends Screen {
             onClose();
             return true;
         }
+        // Forward to search box if focused
+        if (searchBox.isFocused()) {
+            return searchBox.keyPressed(event);
+        }
         return super.keyPressed(event);
     }
 
@@ -598,6 +607,10 @@ public class RuleListScreen extends Screen {
     public boolean charTyped(CharacterEvent event) {
         if (editingRuleIndex >= 0) {
             return inlineEditBox.charTyped(event);
+        }
+        // Forward to search box if focused
+        if (searchBox.isFocused()) {
+            return searchBox.charTyped(event);
         }
         return super.charTyped(event);
     }
