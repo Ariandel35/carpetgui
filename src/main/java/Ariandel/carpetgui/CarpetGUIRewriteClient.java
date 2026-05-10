@@ -75,8 +75,7 @@ public class CarpetGUIRewriteClient implements ClientModInitializer {
 
         if (hasModOnServer) {
             String lang = client.getLanguageManager().getSelected();
-            List<String> knownNames = new ArrayList<>(cachedRules.keySet());
-            ClientPlayNetworking.send(new RequestRulesPayload(lang, knownNames));
+            ClientPlayNetworking.send(new RequestRulesPayload(lang, List.of()));
             requesting = true;
         } else {
             client.setScreen(new RuleListScreen(Component.literal("Carpet Rules"), instantAffect));
