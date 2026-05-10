@@ -3,8 +3,10 @@ package Ariandel.carpetgui.network.server;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.FriendlyByteBuf;
 
 import Ariandel.carpetgui.CarpetGUIRewrite;
+import Ariandel.carpetgui.network.PacketIDs;
 import Ariandel.carpetgui.network.RuleData;
 import Ariandel.carpetgui.network.client.RequestRulesPayload;
 import Ariandel.carpetgui.network.client.RequestRuleStackPayload;
@@ -17,16 +19,17 @@ public class ServerPacketHandler {
 
     public static void handleRequestRules(RequestRulesPayload payload, ServerPlayer player, MinecraftServer server) {
         server.execute(() -> {
-            String lang = payload.lang();
+            String lang = payload.lang;
             List<RuleData> allRules = CarpetGUIRewrite.getRules(lang);
-            List<String> known = payload.knownRuleNames();
+            List<String> known = payload.knownRuleNames;
 
             List<RuleData> toSend = known.isEmpty()
                 ? allRules
                 : allRules.stream().filter(r -> !known.contains(r.name)).toList();
 
-            ServerPlayNetworking.send(player,
-                new RulesPacketPayload(toSend, CarpetGUIRewrite.getDefaults(), !known.isEmpty()));
+            FriendlyByteBuf buf = new FriendlyByteBuf(io.netty.buffer.Unpooled.buffer());
+            new RulesPacketPayload(toSend, CarpetGUIRewrite.getDefaults(), !known.isEmpty()).write(buf);
+            ServerPlayNetworking.send(player, PacketIDs.SYNC_RULES, buf);
         });
     }
 
@@ -55,10 +58,11 @@ public class ServerPacketHandler {
                     c.ruleKey(), c.previousSnapshot().value(), c.previousSnapshot().isDefault(),
                     c.newSnapshot().value(), c.newSnapshot().isDefault())).toList();
 
-            ServerPlayNetworking.send(player, new RuleStackSyncPayload(
-                mgr.getActiveName(),
+            FriendlyByteBuf buf = new FriendlyByteBuf(io.netty.buffer.Unpooled.buffer());
+            new RuleStackSyncPayload(mgr.getActiveName(),
                 mgr.getAllPrefabs().stream().map(Prefab::getName).toList(),
-                layers, pending, future));
+                layers, pending, future).write(buf);
+            ServerPlayNetworking.send(player, PacketIDs.RULE_STACK_SYNC, buf);
         });
     }
 }

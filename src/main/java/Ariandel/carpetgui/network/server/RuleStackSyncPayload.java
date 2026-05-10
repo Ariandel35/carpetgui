@@ -1,25 +1,16 @@
 package Ariandel.carpetgui.network.server;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static Ariandel.carpetgui.network.PacketIDs.RULE_STACK_SYNC;
+public class RuleStackSyncPayload {
 
-public record RuleStackSyncPayload(
-    String activePrefabName,
-    List<String> allPrefabNames,
-    List<LayerInfo> layers,
-    List<ChangeInfo> pendingChanges,
-    List<LayerInfo> futureLayers
-) implements CustomPacketPayload {
-
-    public static final Type<RuleStackSyncPayload> TYPE = new Type<>(RULE_STACK_SYNC);
-    public static final StreamCodec<FriendlyByteBuf, RuleStackSyncPayload> CODEC =
-        StreamCodec.ofMember(RuleStackSyncPayload::write, RuleStackSyncPayload::new);
+    public final String activePrefabName;
+    public final List<String> allPrefabNames;
+    public final List<LayerInfo> layers;
+    public final List<ChangeInfo> pendingChanges;
+    public final List<LayerInfo> futureLayers;
 
     public record LayerInfo(String id, String message, long timestamp, List<ChangeInfo> changes) {
         public void write(FriendlyByteBuf buf) {
@@ -49,6 +40,16 @@ public record RuleStackSyncPayload(
         }
     }
 
+    public RuleStackSyncPayload(String activePrefabName, List<String> allPrefabNames,
+                                 List<LayerInfo> layers, List<ChangeInfo> pendingChanges,
+                                 List<LayerInfo> futureLayers) {
+        this.activePrefabName = activePrefabName;
+        this.allPrefabNames = allPrefabNames;
+        this.layers = layers;
+        this.pendingChanges = pendingChanges;
+        this.futureLayers = futureLayers;
+    }
+
     public RuleStackSyncPayload(FriendlyByteBuf buf) {
         this(buf.readUtf(), buf.readList(FriendlyByteBuf::readUtf),
             buf.readList(LayerInfo::read), buf.readList(ChangeInfo::read),
@@ -62,7 +63,4 @@ public record RuleStackSyncPayload(
         buf.writeCollection(pendingChanges, (b, c) -> c.write(b));
         buf.writeCollection(futureLayers, (b, l) -> l.write(b));
     }
-
-    @Override
-    public @NotNull Type<? extends CustomPacketPayload> type() { return TYPE; }
 }

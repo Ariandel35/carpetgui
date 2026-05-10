@@ -1,7 +1,7 @@
 package Ariandel.carpetgui.screen;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -52,11 +52,11 @@ public class RuleStackScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta) {
-        super.extractRenderState(g, mouseX, mouseY, delta);
+    public void render(GuiGraphics g, int mouseX, int mouseY, float delta) {
+        super.render(g, mouseX, mouseY, delta);
 
         if (syncedData == null) {
-            g.centeredText(font, "No rule stack data available", width / 2, height / 2, 0xFFFFFFFF);
+            g.drawCenteredString(font, "No rule stack data available", width / 2, height / 2, 0xFFFFFFFF);
             return;
         }
 
@@ -70,23 +70,23 @@ public class RuleStackScreen extends Screen {
             if (ry < 40 || ry > height - 40) continue;
 
             g.fill(x, ry, x + 400, ry + 38, 0x33000000);
-            g.text(font, "Layer: " + layer.id(), x + 4, ry + 2, 0xFFFFAA00);
-            g.text(font, layer.message(), x + 4, ry + 14, 0xFFAAAAAA);
-            g.text(font, sdf.format(new Date(layer.timestamp())), x + 4, ry + 26, 0xFF888888);
-            g.text(font, layer.changes().size() + " changes",
+            g.drawString(font, "Layer: " + layer.id(), x + 4, ry + 2, 0xFFFFAA00);
+            g.drawString(font, layer.message(), x + 4, ry + 14, 0xFFAAAAAA);
+            g.drawString(font, sdf.format(new Date(layer.timestamp())), x + 4, ry + 26, 0xFF888888);
+            g.drawString(font, layer.changes().size() + " changes",
                 x + 396 - font.width(layer.changes().size() + " changes"), ry + 14, 0xFF55AAFF);
         }
 
         if (!syncedData.pendingChanges.isEmpty()) {
             int py = y + syncedData.layers.size() * 40 + 10 - scrollOffset;
-            g.text(font, "Pending: " + syncedData.pendingChanges.size() + " changes",
+            g.drawString(font, "Pending: " + syncedData.pendingChanges.size() + " changes",
                 x + 4, py, 0xFFFF5555);
         }
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        scrollOffset = Math.max(0, scrollOffset - (int)(scrollY * 20));
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+        scrollOffset = Math.max(0, scrollOffset - (int)(amount * 20));
         return true;
     }
 

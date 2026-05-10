@@ -6,15 +6,15 @@ import carpet.api.settings.RuleHelper;
 import carpet.api.settings.SettingsManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.level.gamerules.GameRule;
+import net.minecraft.network.FriendlyByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import Ariandel.carpetgui.network.PacketIDs;
 import Ariandel.carpetgui.network.RuleData;
 import Ariandel.carpetgui.network.client.RequestRulesPayload;
 import Ariandel.carpetgui.network.client.RequestRuleStackPayload;
@@ -45,22 +45,22 @@ public class CarpetGUIRewrite implements ModInitializer, CarpetExtension {
             RuleStackCommand.register(dispatcher);
         });
 
-        PayloadTypeRegistry.serverboundPlay().register(RequestRulesPayload.TYPE, RequestRulesPayload.CODEC);
-        PayloadTypeRegistry.serverboundPlay().register(RequestRuleStackPayload.TYPE, RequestRuleStackPayload.CODEC);
-        PayloadTypeRegistry.clientboundPlay().register(RulesPacketPayload.TYPE, RulesPacketPayload.CODEC);
-        PayloadTypeRegistry.clientboundPlay().register(HelloPacketPayload.TYPE, HelloPacketPayload.CODEC);
-        PayloadTypeRegistry.clientboundPlay().register(RuleStackSyncPayload.TYPE, RuleStackSyncPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(PacketIDs.REQUEST_RULES,
+            (server, player, handler, buf, sender) -> {
+                RequestRulesPayload payload = new RequestRulesPayload(buf);
+                ServerPacketHandler.handleRequestRules(payload, player, server);
+            });
 
-        ServerPlayNetworking.registerGlobalReceiver(RequestRulesPayload.TYPE,
-            (payload, context) ->
-                ServerPacketHandler.handleRequestRules(payload, context.player(), context.server()));
-
-        ServerPlayNetworking.registerGlobalReceiver(RequestRuleStackPayload.TYPE,
-            (payload, context) ->
-                ServerPacketHandler.handleRequestRuleStack(payload, context.player(), context.server()));
+        ServerPlayNetworking.registerGlobalReceiver(PacketIDs.REQUEST_RULE_STACK,
+            (server, player, handler, buf, sender) -> {
+                RequestRuleStackPayload payload = new RequestRuleStackPayload(buf);
+                ServerPacketHandler.handleRequestRuleStack(payload, player, server);
+            });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            sender.sendPacket(new HelloPacketPayload());
+            FriendlyByteBuf helloBuf = new FriendlyByteBuf(io.netty.buffer.Unpooled.buffer());
+            new HelloPacketPayload().write(helloBuf);
+            sender.sendPacket(PacketIDs.HELLO, helloBuf);
         });
     }
 
@@ -72,27 +72,6 @@ public class CarpetGUIRewrite implements ModInitializer, CarpetExtension {
                 rules.addAll(getRules(mgr, lang));
             }
         }
-        rules.addAll(getGamerulesAsRules());
-        return rules;
-    }
-
-    private static List<RuleData> getGamerulesAsRules() {
-        List<RuleData> rules = new ArrayList<>();
-        MinecraftServer server = CarpetServer.minecraft_server;
-        if (server == null) return rules;
-
-        var gameRules = server.getGameRules();
-        gameRules.availableRules().forEach(rule -> {
-            rules.add(new RuleData(
-                "gamerule", rule.id(), rule.id(),
-                rule.valueClass(),
-                serializeDefault(rule),
-                gameRules.getAsString(rule),
-                rule.getDescriptionId(), rule.getDescriptionId(),
-                List.of(),
-                List.of(Map.entry("gamerule", "gui.category.gamerules"))
-            ));
-        });
         return rules;
     }
 
@@ -157,10 +136,6 @@ public class CarpetGUIRewrite implements ModInitializer, CarpetExtension {
     }
 
     public static PrefabManager getPrefabManager() { return prefabManager; }
-
-    private static <T> String serializeDefault(GameRule<T> rule) {
-        return rule.serialize(rule.defaultValue());
-    }
 
     public static void forEachManager(Consumer<SettingsManager> consumer) {
         consumer.accept(CarpetServer.settingsManager);

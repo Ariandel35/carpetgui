@@ -1,5 +1,5 @@
 plugins {
-    id("net.fabricmc.fabric-loom") version "1.17.0-alpha.7"
+    id("fabric-loom") version "1.6.5"
     id("maven-publish")
 }
 
@@ -15,10 +15,12 @@ repositories {
 
 dependencies {
     minecraft("com.mojang:minecraft:${minecraft_version}")
-    implementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
-    implementation("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")
+    modImplementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")
 
-    implementation("carpet:fabric-carpet:${carpet_version}")
+    modImplementation("carpet:fabric-carpet:${carpet_version}")
+
+    mappings(loom.officialMojangMappings())
 }
 
 loom {
@@ -30,8 +32,8 @@ loom {
 
 java {
     withSourcesJar()
-    targetCompatibility = JavaVersion.VERSION_25
-    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_17
 }
 
 tasks.processResources {
@@ -45,10 +47,10 @@ tasks.processResources {
             "id": mod_id,
             "name": mod_name,
             "version": mod_version,
-            "minecraft_dep": ">=26.1.1"
+            "minecraft_dep": ">=1.20.1"
         ])
     }
     filesMatching("*.mixins.json") {
-        expand(["java": "JAVA_25"])
+        expand(["java": "JAVA_17"])
     }
 }

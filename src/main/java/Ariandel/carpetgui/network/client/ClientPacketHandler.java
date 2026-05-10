@@ -20,20 +20,20 @@ public class ClientPacketHandler {
             var client = Minecraft.getInstance();
             CarpetGUIRewriteClient.hasModOnServer = true;
 
-            if (!payload.isPartial()) {
+            if (!payload.isPartial) {
                 // Full sync
                 CarpetGUIRewriteClient.cachedRules.clear();
-                for (RuleData r : payload.rules()) {
+                for (RuleData r : payload.rules) {
                     CarpetGUIRewriteClient.cachedRules.put(r.name, r);
                 }
                 CarpetGUIRewriteClient.cachedCategories = collectCategories();
                 CarpetGUIRewriteClient.defaultRules.clear();
-                for (String d : payload.defaults().split(";")) {
+                for (String d : payload.defaults.split(";")) {
                     if (!d.isBlank()) CarpetGUIRewriteClient.defaultRules.add(d);
                 }
             } else {
                 // Partial update
-                for (RuleData r : payload.rules()) {
+                for (RuleData r : payload.rules) {
                     CarpetGUIRewriteClient.cachedRules.put(r.name, r);
                 }
                 CarpetGUIRewriteClient.cachedCategories = collectCategories();
@@ -44,7 +44,7 @@ public class ClientPacketHandler {
             // Save cache async
             new Thread(() -> {
                 RulesCacheManager.save(new ArrayList<>(CarpetGUIRewriteClient.cachedRules.values()),
-                    payload.defaults(), client.getLanguageManager().getSelected());
+                    payload.defaults, client.getLanguageManager().getSelected());
             }, "carpetgui-cache").start();
 
             // Open screen
@@ -54,25 +54,25 @@ public class ClientPacketHandler {
 
     public static void handleRuleStack(RuleStackSyncPayload payload) {
         Minecraft.getInstance().execute(() -> {
-            List<RuleStackData.LayerData> layers = payload.layers().stream()
+            List<RuleStackData.LayerData> layers = payload.layers.stream()
                 .map(l -> new RuleStackData.LayerData(l.id(), l.message(), l.timestamp(),
                     l.changes().stream().map(c -> new RuleStackData.Change(
                         c.ruleKey(), c.prevValue(), c.prevIsDefault(),
                         c.newValue(), c.newIsDefault())).toList()))
                 .toList();
-            List<RuleStackData.LayerData> future = payload.futureLayers().stream()
+            List<RuleStackData.LayerData> future = payload.futureLayers.stream()
                 .map(l -> new RuleStackData.LayerData(l.id(), l.message(), l.timestamp(),
                     l.changes().stream().map(c -> new RuleStackData.Change(
                         c.ruleKey(), c.prevValue(), c.prevIsDefault(),
                         c.newValue(), c.newIsDefault())).toList()))
                 .toList();
-            List<RuleStackData.Change> pending = payload.pendingChanges().stream()
+            List<RuleStackData.Change> pending = payload.pendingChanges.stream()
                 .map(c -> new RuleStackData.Change(
                     c.ruleKey(), c.prevValue(), c.prevIsDefault(),
                     c.newValue(), c.newIsDefault())).toList();
 
-            RuleStackData data = new RuleStackData(payload.activePrefabName(),
-                payload.allPrefabNames(), layers, pending, future);
+            RuleStackData data = new RuleStackData(payload.activePrefabName,
+                payload.allPrefabNames, layers, pending, future);
             RuleStackScreen.onSync(data);
         });
     }
