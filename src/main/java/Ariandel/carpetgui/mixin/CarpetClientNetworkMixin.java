@@ -20,9 +20,9 @@ public class CarpetClientNetworkMixin {
         CompoundTag ruleNbt = (CompoundTag) original.call(instance, key);
         if (ruleNbt.contains("Manager")) {
             RuleData rd = new RuleData();
-            rd.manager = ruleNbt.getString("Manager").orElse("");
-            rd.value = ruleNbt.getString("Value").orElse("");
-            rd.name = ruleNbt.getString("Rule").orElse("");
+            rd.manager = ruleNbt.getString("Manager");
+            rd.value = ruleNbt.getString("Value");
+            rd.name = ruleNbt.getString("Rule");
             CarpetGUIRewriteClient.incompleteServerRules.add(rd);
         }
         return ruleNbt;

@@ -1,10 +1,9 @@
 package Ariandel.carpetgui.screen;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import java.util.*;
 
@@ -62,8 +61,8 @@ public class RuleGroupScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta) {
-        super.extractRenderState(g, mouseX, mouseY, delta);
+    public void render(GuiGraphics g, int mouseX, int mouseY, float delta) {
+        super.render(g, mouseX, mouseY, delta);
 
         int y = 56;
         int x = (width - 300) / 2;
@@ -81,16 +80,13 @@ public class RuleGroupScreen extends Screen {
             g.fill(x, ry, x + 300, ry + 22, bg);
 
             String prefix = selected ? "§a[✓] " : "§7[ ] ";
-            g.text(font, prefix + rule.localName + "  §7= " + rule.value, x + 4, ry + 5, 0xFFFFFFFF);
+            g.drawString(font, prefix + rule.localName + "  §7= " + rule.value, x + 4, ry + 5, 0xFFFFFFFF);
         }
     }
 
     @Override
-    public boolean mouseClicked(MouseButtonEvent event, boolean flag) {
-        if (super.mouseClicked(event, flag)) return true;
-
-        double mouseX = event.x();
-        double mouseY = event.y();
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (super.mouseClicked(mouseX, mouseY, button)) return true;
         int x = (width - 300) / 2;
         int y = 56;
         int startIdx = scrollOffset / 22;

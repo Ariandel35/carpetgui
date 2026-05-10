@@ -1,12 +1,9 @@
 package Ariandel.carpetgui.screen;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.CharacterEvent;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 
@@ -184,8 +181,8 @@ public class RuleListScreen extends Screen {
     // ───── Rendering ─────
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta) {
-        super.extractRenderState(g, mouseX, mouseY, delta);
+    public void render(GuiGraphics g, int mouseX, int mouseY, float delta) {
+        super.render(g, mouseX, mouseY, delta);
 
         int guiLeft = getGuiLeft();
         int panelLeft = getPanelLeft();
@@ -219,12 +216,12 @@ public class RuleListScreen extends Screen {
 
         // Inline edit box
         if (editingRuleIndex >= 0) {
-            inlineEditBox.extractWidgetRenderState(g, mouseX, mouseY, delta);
+            inlineEditBox.render(g, mouseX, mouseY, delta);
         }
 
         // Re-render search box on top of background fills
         if (searchBox != null) {
-            searchBox.extractWidgetRenderState(g, mouseX, mouseY, delta);
+            searchBox.render(g, mouseX, mouseY, delta);
         }
 
         // Tooltip (only when no dropdown/edit active)
@@ -242,13 +239,13 @@ public class RuleListScreen extends Screen {
                 Component.literal("§7" + rule.localDescription),
                 Component.literal("§8分类: " + (catStr.isEmpty() ? "无" : catStr))
             );
-            g.setComponentTooltipForNextFrame(font, tooltip, mouseX, mouseY);
+            g.renderComponentTooltip(font, tooltip, mouseX, mouseY);
         }
     }
 
     // ───── Sidebar ─────
 
-    private void drawSidebar(GuiGraphicsExtractor g, int x, int mouseX, int mouseY) {
+    private void drawSidebar(GuiGraphics g, int x, int mouseX, int mouseY) {
         int availableHeight = height - 38 - SIDEBAR_TOP;
         int totalTabHeight = displayCategories.size() * (TAB_HEIGHT + TAB_GAP) - TAB_GAP;
         sidebarMaxScroll = Math.max(0, totalTabHeight - availableHeight);
@@ -282,7 +279,7 @@ public class RuleListScreen extends Screen {
             int maxTextW = SIDEBAR_WIDTH - 12;
             String text = truncateToWidth(displayName, maxTextW);
             int textX = x + (SIDEBAR_WIDTH - font.width(text)) / 2;
-            g.text(font, text, textX, tabTop + 5, active ? 0xFFFFFFAA : 0xFFCCCCCC);
+            g.drawString(font, text, textX, tabTop + 5, active ? 0xFFFFFFAA : 0xFFCCCCCC);
 
             y += TAB_HEIGHT + TAB_GAP;
         }
@@ -297,10 +294,10 @@ public class RuleListScreen extends Screen {
 
     // ───── Rule list ─────
 
-    private void drawRuleList(GuiGraphicsExtractor g, int x, int y, int height, int mouseX, int mouseY) {
+    private void drawRuleList(GuiGraphics g, int x, int y, int height, int mouseX, int mouseY) {
         hoveredRuleIndex = -1;
         if (filteredRules.isEmpty()) {
-            g.centeredText(font, Component.translatable("gui.carpetgui.no_rules"),
+            g.drawCenteredString(font, Component.translatable("gui.carpetgui.no_rules"),
                 x + PANEL_WIDTH / 2, y + height / 2 - 10, 0xFF888888);
             return;
         }
@@ -348,7 +345,7 @@ public class RuleListScreen extends Screen {
             String prefix = rule.isGamerule ? "[G] " : "";
             String nameText = truncateToWidth(prefix + rule.localName, nameMaxW);
             int nameColor = rule.isGamerule ? 0xFF88BBFF : 0xFFFFFFFF;
-            g.text(font, nameText, starRight, ry + 5, nameColor);
+            g.drawString(font, nameText, starRight, ry + 5, nameColor);
 
             // Right-side control
             int ctrlX = x + rowW - ctrlW - 2;
@@ -375,19 +372,19 @@ public class RuleListScreen extends Screen {
 
     // ───── Star ─────
 
-    private void drawStar(GuiGraphicsExtractor g, int sx, int ry, RuleData rule, int mouseX, int mouseY) {
+    private void drawStar(GuiGraphics g, int sx, int ry, RuleData rule, int mouseX, int mouseY) {
         int starY = ry + (RULE_ENTRY_HEIGHT - STAR_SIZE) / 2;
         boolean isFav = favoriteRules.contains(rule.name);
         boolean hoverStar = mouseX >= sx - 1 && mouseX < sx + STAR_SIZE + 3
             && mouseY >= starY - 1 && mouseY < starY + STAR_SIZE + 3;
         String ch = isFav ? "★" : "☆";
         int color = isFav ? 0xFFFFAA00 : (hoverStar ? 0xFFFFAA44 : 0xFF666666);
-        g.text(font, ch, sx, starY, color);
+        g.drawString(font, ch, sx, starY, color);
     }
 
     // ───── Boolean button ─────
 
-    private void paintBooleanButton(GuiGraphicsExtractor g, int bx, int by,
+    private void paintBooleanButton(GuiGraphics g, int bx, int by,
             RuleData rule, int mouseX, int mouseY, boolean isAtDefault) {
         boolean isTrue = "true".equalsIgnoreCase(rule.value);
         boolean hovered = mouseX >= bx && mouseX < bx + BOOLEAN_BTN_W
@@ -400,7 +397,7 @@ public class RuleListScreen extends Screen {
 
         String text = isTrue ? "true" : "false";
         int textX = bx + (BOOLEAN_BTN_W - font.width(text)) / 2;
-        g.text(font, text, textX, by + 4, 0xFFFFFFFF);
+        g.drawString(font, text, textX, by + 4, 0xFFFFFFFF);
 
         // Lock overlay if at default
         if (isAtDefault) {
@@ -410,7 +407,7 @@ public class RuleListScreen extends Screen {
 
     // ───── Value button (non-boolean) ─────
 
-    private void paintValueButton(GuiGraphicsExtractor g, int bx, int by,
+    private void paintValueButton(GuiGraphics g, int bx, int by,
             RuleData rule, int mouseX, int mouseY, boolean isAtDefault) {
         boolean hovered = mouseX >= bx && mouseX < bx + VALUE_BTN_W
             && mouseY >= by && mouseY < by + VALUE_BTN_H;
@@ -422,7 +419,7 @@ public class RuleListScreen extends Screen {
         String valText = truncateToWidth(rule.value, VALUE_BTN_W - 8);
         int textColor = isAtDefault ? 0xFF88FF88 : 0xFFFFAA44;
         int textX = bx + (VALUE_BTN_W - font.width(valText)) / 2;
-        g.text(font, valText, textX, by + 4, textColor);
+        g.drawString(font, valText, textX, by + 4, textColor);
 
         if (isAtDefault) {
             drawLockIcon(g, bx + VALUE_BTN_W - 11, by + 3);
@@ -431,7 +428,7 @@ public class RuleListScreen extends Screen {
 
     // ───── Lock icon ─────
 
-    private void drawLockIcon(GuiGraphicsExtractor g, int lx, int ly) {
+    private void drawLockIcon(GuiGraphics g, int lx, int ly) {
         // Semi-transparent dark background
         g.fill(lx, ly, lx + 10, ly + 13, 0x66000000);
         // Lock body (6x5)
@@ -444,7 +441,7 @@ public class RuleListScreen extends Screen {
 
     // ───── Dropdown ─────
 
-    private void drawDropdown(GuiGraphicsExtractor g, int panelLeft, int listTop, int mouseX, int mouseY) {
+    private void drawDropdown(GuiGraphics g, int panelLeft, int listTop, int mouseX, int mouseY) {
         if (dropdownRuleIndex < 0 || dropdownRuleIndex >= filteredRules.size()) return;
 
         RuleData rule = filteredRules.get(dropdownRuleIndex);
@@ -477,19 +474,16 @@ public class RuleListScreen extends Screen {
                 g.fill(ddX + 1, sy, ddX + DROPDOWN_W - 1, sy + DROPDOWN_ENTRY_H, 0xFF444444);
             }
             String display = isCurrent ? "§a✓ " + sug : sug;
-            g.text(font, display, ddX + 4, sy + 4, isCurrent ? 0xFF88FF88 : 0xFFFFFFFF);
+            g.drawString(font, display, ddX + 4, sy + 4, isCurrent ? 0xFF88FF88 : 0xFFFFFFFF);
         }
     }
 
     // ───── Mouse input ─────
 
     @Override
-    public boolean mouseClicked(MouseButtonEvent event, boolean flag) {
-        if (super.mouseClicked(event, flag)) return true;
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (super.mouseClicked(mouseX, mouseY, button)) return true;
 
-        double mouseX = event.x();
-        double mouseY = event.y();
-        int button = event.button();
         int guiLeft = getGuiLeft();
         int panelLeft = getPanelLeft();
         int listTop = getListTop();
@@ -555,17 +549,18 @@ public class RuleListScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        double amount = scrollY;
         int guiLeft = getGuiLeft();
         // Sidebar scroll
         if (mouseX >= guiLeft && mouseX < guiLeft + SIDEBAR_WIDTH) {
             sidebarScrollOffset = Math.max(0, Math.min(sidebarMaxScroll,
-                (int) (sidebarScrollOffset - scrollY * 20)));
+                (int) (sidebarScrollOffset - amount * 20)));
             return true;
         }
         // Rule list scroll
         if (mouseX >= getPanelLeft() && mouseX < guiLeft + TOTAL_WIDTH) {
             scrollOffset = Math.max(0, Math.min(maxScroll,
-                (int) (scrollOffset - scrollY * 20)));
+                (int) (scrollOffset - amount * 20)));
             return true;
         }
         return true;
@@ -574,45 +569,45 @@ public class RuleListScreen extends Screen {
     // ───── Keyboard input ─────
 
     @Override
-    public boolean keyPressed(KeyEvent event) {
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (editingRuleIndex >= 0) {
-            if (event.input() == GLFW.GLFW_KEY_ENTER) {
+            if (keyCode == GLFW.GLFW_KEY_ENTER) {
                 applyInlineEdit();
                 editingRuleIndex = -1;
                 return true;
             }
-            if (event.input() == GLFW.GLFW_KEY_ESCAPE) {
+            if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
                 editingRuleIndex = -1;
                 return true;
             }
-            return inlineEditBox.keyPressed(event);
+            return inlineEditBox.keyPressed(keyCode, scanCode, modifiers);
         }
 
-        if (event.input() == GLFW.GLFW_KEY_ESCAPE) {
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
             onClose();
             return true;
         }
-        if (event.input() == GLFW.GLFW_KEY_F9 && !searchBox.isFocused()) {
+        if (keyCode == GLFW.GLFW_KEY_F9 && !searchBox.isFocused()) {
             onClose();
             return true;
         }
         // Forward to search box if focused
         if (searchBox.isFocused()) {
-            return searchBox.keyPressed(event);
+            return searchBox.keyPressed(keyCode, scanCode, modifiers);
         }
-        return super.keyPressed(event);
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override
-    public boolean charTyped(CharacterEvent event) {
+    public boolean charTyped(char chr, int modifiers) {
         if (editingRuleIndex >= 0) {
-            return inlineEditBox.charTyped(event);
+            return inlineEditBox.charTyped(chr, modifiers);
         }
         // Forward to search box if focused
         if (searchBox.isFocused()) {
-            return searchBox.charTyped(event);
+            return searchBox.charTyped(chr, modifiers);
         }
-        return super.charTyped(event);
+        return super.charTyped(chr, modifiers);
     }
 
     // ───── Interaction handlers ─────

@@ -8,7 +8,7 @@ import static net.minecraft.commands.Commands.*;
 public class RuleStackCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("rulestack")
-            .requires(hasPermission(LEVEL_GAMEMASTERS))
+            .requires(source -> source.hasPermission(2))
             .then(Commands.literal("push")
                 .executes(ctx -> {
                     // TODO: implement push

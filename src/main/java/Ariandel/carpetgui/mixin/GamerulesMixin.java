@@ -1,6 +1,6 @@
 package Ariandel.carpetgui.mixin;
 
-import net.minecraft.world.level.gamerules.GameRules;
+import net.minecraft.world.level.GameRules;
 import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(GameRules.class)
