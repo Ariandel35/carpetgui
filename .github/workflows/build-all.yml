@@ -1,0 +1,60 @@
+name: Build All MC Versions
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - branch: main
+            mc: 26.1
+            java: 25
+          - branch: 1.21.4
+            mc: 1.21.4
+            java: 21
+          - branch: 1.20.1
+            mc: 1.20.1
+            java: 17
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup JDK ${{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: temurin
+
+      - name: Checkout ${{ matrix.branch }}
+        run: git checkout ${{ matrix.branch }}
+
+      - name: Build
+        run: ./gradlew build -Dorg.gradle.java.home=$JAVA_HOME
+
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: CarpetGUI-Rewrite-mc${{ matrix.mc }}
+          path: build/libs/CarpetGUI-Rewrite-*.jar
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: CarpetGUI-Rewrite-mc*
+          merge-multiple: true
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            CarpetGUI-Rewrite-*.jar
